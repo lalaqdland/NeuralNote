@@ -235,13 +235,16 @@ NeuralNote-Project/
 
 ```
 NeuralNote-Project/
-├── README.md                    # 项目入口
-├── .env.example                 # 环境变量模板
-├── docker-compose.yml           # Docker编排配置
-├── nginx/
-│   └── nginx.conf               # Nginx配置
-├── backend/
-│   ├── app/
+├── README.md                    # 项目入口文档
+├── .gitignore                   # Git忽略规则
+├── requirements.txt             # Python依赖清单
+├── TODO.md                      # 开发任务清单
+├── docs/                        # 文档目录
+│   ├── 01_Product/              # 产品文档（PRD）
+│   ├── 02_Tech/                 # 技术文档（API Design）
+│   └── 03_Logs/                 # 开发日志（DevLog）
+├── src/                         # 源代码目录（开发时创建）
+│   ├── backend/                 # 后端代码
 │   │   ├── main.py              # FastAPI入口
 │   │   ├── config.py            # 配置管理
 │   │   ├── models/              # 数据模型
@@ -250,21 +253,21 @@ NeuralNote-Project/
 │   │   ├── services/            # 业务逻辑
 │   │   ├── utils/               # 工具函数
 │   │   └── ml/                  # ML/AI模块
-│   ├── tests/                   # 测试代码
-│   └── requirements.txt         # Python依赖
-│
-└── frontend/
-    ├── public/
-    ├── src/
-    │   ├── components/          # React组件
-    │   ├── pages/               # 页面
-    │   ├── store/               # Redux store
-    │   ├── hooks/               # 自定义Hooks
-    │   ├── services/            # API服务
-    │   ├── utils/               # 工具函数
-    │   └── styles/              # 样式文件
-    ├── package.json
-    └── tsconfig.json
+│   └── frontend/                # 前端代码
+│       ├── public/
+│       ├── src/
+│       │   ├── components/      # React组件
+│       │   ├── pages/           # 页面
+│       │   ├── store/           # Redux store
+│       │   ├── hooks/           # 自定义Hooks
+│       │   ├── services/        # API服务
+│       │   ├── utils/           # 工具函数
+│       │   └── styles/          # 样式文件
+│       └── package.json
+├── docker/                      # Docker配置（开发时创建）
+│   ├── backend/
+│   └── frontend/
+└── scripts/                     # 辅助脚本（开发时创建）
 ```
 
 ---
