@@ -42,12 +42,12 @@ MVP阶段进度: ░░░░░░░░░░░░░░░░░░░░░
   
   > 📓 **记得更新 DevLog**：记录环境配置过程中遇到的问题和解决方案
 
-- [ ] **1.1.2** 配置前端开发环境
-  - [ ] 初始化 React 项目 (CRA/Vite)
-  - [ ] 配置 TypeScript
-  - [ ] 安装状态管理 (Redux Toolkit)
-  - [ ] 配置路由 (React Router)
-  - [ ] 安装 UI 组件库
+- [ ] **1.1.2** 配置前端开发环境 ✅
+  - [x] ~~初始化 React 项目 (Vite)~~ (已创建 src/frontend)
+  - [x] ~~配置 TypeScript~~ (已配置 tsconfig.json)
+  - [x] ~~安装状态管理 (Redux Toolkit)~~ (已安装 @reduxjs/toolkit, react-redux)
+  - [x] ~~配置路由 (React Router)~~ (已配置 v7路由)
+  - [x] ~~安装 UI 组件库~~ (已安装 Ant Design)
   
   > 📓 **记得更新 DevLog**：记录前端框架选择和配置的决策
 

@@ -404,6 +404,63 @@ MemoryNode {
 
 ---
 
+### 2026-01-29 - 前端框架选择决策
+
+#### [决策] 采用 React + Vite + TypeScript 技术栈
+
+**决策内容**：
+- **Web框架**：React 18（使用Vite作为构建工具）
+- **语言**：TypeScript（类型安全）
+- **包管理器**：npm（Node.js内置）
+- **项目结构**：`src/frontend/` 目录
+
+**技术选型理由**：
+
+1. **React 18**：
+   - 生态成熟，社区活跃
+   - 与D3.js/Three.js图谱库集成良好
+   - 团队学习成本低
+
+2. **Vite**：
+   - 开发服务器启动快（基于原生ESM）
+   - 热更新效率高
+   - 打包优化内置
+
+3. **TypeScript**：
+   - 静态类型检查，减少运行时错误
+   - IDE智能提示，提升开发效率
+   - 代码可维护性好
+
+4. **项目目录结构**：
+   ```
+   src/frontend/
+   ├── public/           # 静态资源
+   ├── src/              # 源代码
+   │   ├── components/   # React组件
+   │   ├── pages/        # 页面
+   │   ├── store/        # Redux store
+   │   ├── hooks/        # 自定义Hooks
+   │   ├── services/     # API服务
+   │   ├── utils/        # 工具函数
+   │   └── styles/       # 样式文件
+   ├── index.html        # 入口HTML
+   ├── package.json      # 依赖配置
+   ├── tsconfig.json     # TypeScript配置
+   └── vite.config.ts    # Vite配置
+   ```
+
+**后续行动**：
+- [x] ~~安装状态管理（Redux Toolkit）~~
+- [x] ~~配置路由（React Router v6）~~
+- [x] ~~安装UI组件库（Ant Design）~~
+- [ ] 集成图谱可视化库（D3.js/Cytoscape.js）
+
+---
+
+### 2026-01-29 - 前端开发环境配置完成
+
+---
+
 ## 术语对照表
 
 | 中文 | 英文 | 说明 |
@@ -417,4 +474,4 @@ MemoryNode {
 ---
 
 *本文档由 NeuralNote 开发团队维护，持续更新中。*
-*最后更新：2026-01-29 21:30*
+*最后更新：2026-01-29 22:30*
