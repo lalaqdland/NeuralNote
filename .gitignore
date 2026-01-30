@@ -1,144 +1,43 @@
-# Byte-compiled / optimized / DLL files
+# Python virtual environment
+venv/
 __pycache__/
-*.py[cod]
-*$py.class
-
-# C extensions
-*.so
-
-# Distribution / packaging
+*.pyc
+*.pyo
+*.pyd
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
+env/
 pip-log.txt
 pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
 .tox/
-.nox/
 .coverage
 .coverage.*
-.cache
+.pytest_cache/
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
 *.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
 
-# Flask stuff:
-instance/
-.webassets-cache
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# poetry
-poetry.lock
-
-# pdm
-.pdm.toml
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# IDEs
+# IDE and editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
-Thumbs.db
 
-# OS files
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -147,63 +46,81 @@ Thumbs.db
 ehthumbs.db
 Thumbs.db
 
-# Backend specific
-*.log
-logs/
-*.pid
-*.seed
-*.pid.lock
+# Build and distribution
+build/
+dist/
+*.egg-info/
 
-# Uploads directory (if using local storage)
-uploads/
-temp/
-tmp/
+# User-specific files and directories
+.EasyOCR/
+.MUMUVMM/
+.anaconda/
+.android/
+.bash_history
+.bun/
+.cargo/
+.cherrystudio/
+.claude.json
+.claude.json.backup
+.claude/
+.conda/
+.condarc
+.config/
+.continue/
+.continuum/
+.cursor/
+.cursor_free_data
+.docker/
+.emulator_console_auth_token
+.expo/
+.gitconfig
+.gradle/
+.ipython/
+.javacpp/
+.keras/
+.lingma/
+.matplotlib/
+.ollama/
+.python_history
+.qwen/
+.rustup/
+.ssh/
+.streamlit/
+.trae-cn/
+.vscode/
+AppData/
+Contacts/
+Downloads/
+Favorites/
+Links/
+NTUSER.DAT*
+OneDrive/
+Saved Games/
+Searches/
+WPS Cloud Files/
+WPSDrive/
+Yinxiang Biji/
+ai_completion/
+battery-report.html
+curve-simulator/
+mcp/
+ntuser.dat.LOG*
+ntuser.ini
+package-lock.json
+sangfor/
 
-# Test artifacts
-.pytest_cache/
-.coverage
-htmlcov/
+# Temporary files
+*.tmp
+*.temp
+.cache/
+*.bak
 
-# IDE specific
-*.sublime-*
-
-# Local development settings
-local_settings.py
-config.local.py
+# Environment variables
+.env
 .env.local
 .env.*.local
 
-# Database
-*.sqlite3
-*.db
-
-# Backup files
-*.bak
-*.backup
-
-# Credentials and secrets
-*.pem
-*.key
-*.crt
-credentials.json
-secrets.json
-
-# Node.js
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnp
-.pnp.js
-
-# Frontend build
-dist/
-build/
-.next/
-out/
-
-# Cache directories
-.cache/
-.parcel-cache/
-.eslintcache
-.stylelintcache
+# Docker volumes
+postgres_data/
+redis_data/
+pgadmin_data/
