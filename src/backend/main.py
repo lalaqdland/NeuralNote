@@ -3,11 +3,13 @@ FastAPI 应用主入口
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.api import api_router
 from app.core.config import settings
@@ -100,6 +102,11 @@ async def database_health_check():
             },
         )
 
+
+# 挂载静态文件目录（用于访问上传的文件）
+uploads_dir = Path("uploads")
+uploads_dir.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # 包含 API 路由
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)

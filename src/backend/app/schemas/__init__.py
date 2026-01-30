@@ -21,6 +21,28 @@ from app.schemas.user import (
     UserResponse,
     UserUpdate,
 )
+from app.schemas.knowledge_graph import (
+    KnowledgeGraphCreate,
+    KnowledgeGraphUpdate,
+    KnowledgeGraphResponse,
+    KnowledgeGraphDetailResponse,
+    KnowledgeGraphListItem,
+    KnowledgeGraphStats,
+)
+from app.schemas.memory_node import (
+    MemoryNodeCreate,
+    MemoryNodeUpdate,
+    MemoryNodeResponse,
+    MemoryNodeDetailResponse,
+    MemoryNodeListItem,
+    NodeRelationCreate,
+    NodeRelationResponse,
+    KnowledgeTagCreate,
+    KnowledgeTagResponse,
+    NodeTagAssign,
+    ReviewLogCreate,
+    ReviewLogResponse,
+)
 
 __all__ = [
     # Common
@@ -40,5 +62,25 @@ __all__ = [
     "EmailVerificationRequest",
     "PasswordResetRequest",
     "PasswordResetConfirm",
+    # Knowledge Graph
+    "KnowledgeGraphCreate",
+    "KnowledgeGraphUpdate",
+    "KnowledgeGraphResponse",
+    "KnowledgeGraphDetailResponse",
+    "KnowledgeGraphListItem",
+    "KnowledgeGraphStats",
+    # Memory Node
+    "MemoryNodeCreate",
+    "MemoryNodeUpdate",
+    "MemoryNodeResponse",
+    "MemoryNodeDetailResponse",
+    "MemoryNodeListItem",
+    "NodeRelationCreate",
+    "NodeRelationResponse",
+    "KnowledgeTagCreate",
+    "KnowledgeTagResponse",
+    "NodeTagAssign",
+    "ReviewLogCreate",
+    "ReviewLogResponse",
 ]
 
