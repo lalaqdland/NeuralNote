@@ -33,3 +33,4 @@ mypy==1.7.1
 
 # Optional: For vector operations (will use with PgVector)
 pgvector==0.2.4
+
