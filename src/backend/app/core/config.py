@@ -3,7 +3,8 @@
 使用 Pydantic Settings 管理环境变量
 """
 
-from typing import Optional
+from typing import Any, Optional
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -36,12 +37,12 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # CORS 配置
-    BACKEND_CORS_ORIGINS: list[str] = [
-        "http://localhost:5173",  # Vite 默认端口
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-    ]
+    BACKEND_CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000"
+    
+    @property
+    def cors_origins(self) -> list[str]:
+        """获取 CORS 源列表"""
+        return [origin.strip() for origin in self.BACKEND_CORS_ORIGINS.split(",")]
 
     # 文件上传配置
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB
