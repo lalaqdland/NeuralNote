@@ -72,12 +72,25 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-主要配置项：
-- `POSTGRES_HOST`: 数据库地址（默认 localhost）
-- `POSTGRES_PORT`: 数据库端口（默认 15432）
-- `POSTGRES_USER`: 数据库用户（默认 neuralnote）
-- `POSTGRES_PASSWORD`: 数据库密码
-- `POSTGRES_DB`: 数据库名（默认 neuralnote_dev）
+**配置状态**：
+
+- ✅ **数据库和 Redis**：已配置（使用 Docker Compose 默认配置）
+- ✅ **百度 OCR**：已配置，可以直接使用 OCR 识别功能
+- ⚠️ **AI 服务**：需要配置（DeepSeek 或 OpenAI）才能使用 AI 分析功能
+
+**需要配置的 AI 服务**：
+
+编辑 `.env` 文件，添加以下至少一个：
+
+```env
+# DeepSeek（推荐）
+DEEPSEEK_API_KEY=your_deepseek_api_key
+
+# 或 OpenAI
+OPENAI_API_KEY=your_openai_api_key
+```
+
+详细配置说明请查看：[CONFIG.md](./CONFIG.md)
 
 ### 3. 启动服务
 
