@@ -79,12 +79,65 @@ NeuralNote 是一款基于AI的智能学习管理工具，核心功能是：
 - 数据库配置文档：`docs/02_Tech/Database_Setup.md`
 - 开发日志：`docs/03_Logs/DevLog.md`
 - 任务清单：`TODO.md`
+- 项目说明：`README.md`
 - 下次开发提示词：`docs/03_Logs/NextDevPrompt.md`（本文档）
 
+【文档更新规范】⚠️ 重要！
+请严格遵守以下文档同步更新规则，确保项目文档体系的一致性：
+
+1. **开发过程中遇到问题** → 立即记录到 `docs/03_Logs/DevLog.md`
+   - 使用标签：[问题] [决策] [技术债]
+   - 记录：问题现象、根本原因、解决方案、经验教训
+   - 更新技术债记录表
+
+2. **完成一个功能模块** → 更新多个文档
+   - `TODO.md`：标记任务完成状态
+   - `docs/03_Logs/DevLog.md`：记录开发会话历史
+   - `README.md`：更新项目进度和功能列表（如有重大更新）
+   - `src/backend/README.md` 或 `src/frontend/README.md`：更新模块文档
+
+3. **API 接口变更** → 同步更新
+   - `docs/02_Tech/API_Design.md`：更新接口文档
+   - `docs/03_Logs/DevLog.md`：记录变更原因和决策
+   - `src/backend/README.md`：更新 API 端点列表
+
+4. **数据库结构变更** → 同步更新
+   - `docs/02_Tech/Database_Setup.md`：更新表结构说明
+   - `docs/03_Logs/DevLog.md`：记录变更原因
+   - 数据库迁移脚本：创建 Alembic 迁移文件
+
+5. **每次开发会话结束** → 必须更新
+   - `docs/03_Logs/NextDevPrompt.md`（本文档）：更新下次开发提示词
+   - `docs/03_Logs/DevLog.md`：添加本次会话记录
+   - `TODO.md`：更新任务进度
+
+【文档关系图】
+```
+README.md (项目总览)
+    ↓
+    ├─→ docs/01_Product/NeuralNote_PRD_v1.3.md (产品需求)
+    │       ↓
+    ├─→ docs/02_Tech/API_Design.md (技术设计)
+    │       ↓
+    ├─→ docs/02_Tech/Database_Setup.md (数据库设计)
+    │       ↓
+    ├─→ src/backend/README.md (后端实现)
+    │   src/frontend/README.md (前端实现)
+    │       ↓
+    ├─→ TODO.md (任务清单) ←→ docs/03_Logs/DevLog.md (开发日志)
+    │       ↓                           ↓
+    └─→ docs/03_Logs/NextDevPrompt.md (下次开发提示词)
+
+更新流程：
+需求变更 → PRD → API设计 → 数据库设计 → 代码实现 → DevLog记录 → TODO更新 → NextDevPrompt更新
+```
+
 【开发规范】
-- 每完成一个任务，请更新 `docs/03_Logs/DevLog.md`
-- 每完成一个任务，请在 `TODO.md` 中标记为完成
-- ⚠️ 每次开发结束前，必须更新 `docs/03_Logs/NextDevPrompt.md`
+- ⚠️ **遇到问题立即记录**：不要等到开发结束，问题解决后立即更新 DevLog.md
+- ⚠️ **每完成一个任务**：同步更新 TODO.md 和 DevLog.md
+- ⚠️ **API/数据库变更**：必须同步更新技术文档
+- ⚠️ **每次开发结束前**：必须更新 NextDevPrompt.md
+- ⚠️ **重大决策**：在 DevLog.md 中使用 [决策] 标签详细记录
 
 请开始吧！
 ```
@@ -352,29 +405,95 @@ mypy .
 
 ## 🚨 注意事项
 
-1. **环境变量管理**
+### 1. 环境变量管理
 
-   - 敏感信息（API Key、数据库密码）使用环境变量
-   - 不要提交 `.env` 文件到Git
-2. **代码规范**
+- 敏感信息（API Key、数据库密码）使用环境变量
+- 不要提交 `.env` 文件到Git
+- 使用 `.env.example` 作为模板
 
-   - Python代码使用Black格式化
-   - TypeScript代码使用ESLint + Prettier
-   - 提交前运行代码检查
-3. **文档同步**
+### 2. 代码规范
 
-   - 每次开发后更新 `DevLog.md`
-   - API变更后更新 `API_Design.md`
-   - 功能完成后更新 `TODO.md`
-4. **Git提交规范**
+- Python代码使用Black格式化
+- TypeScript代码使用ESLint + Prettier
+- 提交前运行代码检查
 
-   - feat: 新功能
-   - fix: 修复bug
-   - docs: 文档更新
-   - style: 代码格式调整
-   - refactor: 重构
-   - test: 测试相关
-   - chore: 构建/工具相关
+### 3. 文档同步更新 ⚠️ 核心规则
+
+**文档体系说明**：
+
+项目采用**分层文档体系**，各文档职责明确、相互关联：
+
+| 文档 | 职责 | 更新时机 | 关联文档 |
+|------|------|---------|---------|
+| `README.md` | 项目总览、快速开始 | 重大功能完成 | 所有文档 |
+| `TODO.md` | 任务清单、进度跟踪 | 每完成一个任务 | DevLog.md |
+| `docs/01_Product/PRD` | 产品需求定义 | 需求变更时 | API_Design.md |
+| `docs/02_Tech/API_Design.md` | API接口设计 | API变更时 | Database_Setup.md, DevLog.md |
+| `docs/02_Tech/Database_Setup.md` | 数据库设计 | 表结构变更时 | DevLog.md |
+| `docs/03_Logs/DevLog.md` | 开发日志、问题记录 | **实时更新** | 所有文档 |
+| `docs/03_Logs/NextDevPrompt.md` | 下次开发提示词 | 每次会话结束 | DevLog.md, TODO.md |
+| `src/backend/README.md` | 后端模块文档 | 后端功能变更 | API_Design.md |
+| `src/frontend/README.md` | 前端模块文档 | 前端功能变更 | - |
+
+**更新规则**：
+
+**规则 1：问题即时记录** 🔥
+```
+遇到问题 → 立即记录到 DevLog.md
+- 不要等到开发结束
+- 使用标签：[问题] [决策] [技术债]
+- 记录：现象 + 原因 + 解决方案 + 经验教训
+- 更新技术债记录表（如适用）
+```
+
+**规则 2：任务完成同步**
+```
+完成任务 → 同步更新多个文档
+1. TODO.md：✅ 标记任务完成
+2. DevLog.md：📝 记录开发会话历史
+3. README.md：📄 更新功能列表（重大功能）
+4. 模块README：📚 更新模块文档
+```
+
+**规则 3：API 变更同步**
+```
+API 变更 → 三处同步更新
+1. docs/02_Tech/API_Design.md：更新接口文档
+2. docs/03_Logs/DevLog.md：记录变更原因
+3. src/backend/README.md：更新端点列表
+```
+
+**规则 4：数据库变更同步**
+```
+数据库变更 → 三处同步更新
+1. docs/02_Tech/Database_Setup.md：更新表结构
+2. docs/03_Logs/DevLog.md：记录变更原因
+3. 创建 Alembic 迁移文件
+```
+
+**规则 5：会话结束必更新**
+```
+开发结束 → 必须更新两个文档
+1. docs/03_Logs/NextDevPrompt.md：更新提示词
+2. docs/03_Logs/DevLog.md：添加会话记录
+```
+
+**文档更新检查清单**：
+- [ ] 遇到问题了吗？→ 立即更新 DevLog.md
+- [ ] 完成任务了吗？→ 更新 TODO.md + DevLog.md
+- [ ] API 变更了吗？→ 更新 API_Design.md + DevLog.md
+- [ ] 数据库变更了吗？→ 更新 Database_Setup.md + DevLog.md
+- [ ] 开发结束了吗？→ 更新 NextDevPrompt.md + DevLog.md
+
+### 4. Git提交规范
+
+- feat: 新功能
+- fix: 修复bug
+- docs: 文档更新
+- style: 代码格式调整
+- refactor: 重构
+- test: 测试相关
+- chore: 构建/工具相关
 
 ---
 
@@ -397,11 +516,128 @@ mypy .
 
 每次开发会话结束前，请确保：
 
+**必须更新**：
 - [ ] 更新"最后更新时间"
 - [ ] 更新"当前进度"部分（已完成/待完成）
 - [ ] 更新"下次开发提示词"中的任务描述
 - [ ] 在"开发会话历史"中添加本次会话记录
+- [ ] **同步更新 DevLog.md**（添加本次会话的问题和决策）
+- [ ] **同步更新 TODO.md**（标记完成的任务）
+
+**按需更新**：
 - [ ] 更新"数据库状态"（如有变化）
 - [ ] 更新"里程碑目标"进度（如有变化）
 - [ ] 检查"常用命令"是否需要更新
-- [ ] 提交本文档的更改到Git
+- [ ] 更新 API_Design.md（如有 API 变更）
+- [ ] 更新 Database_Setup.md（如有数据库变更）
+- [ ] 更新 README.md（如有重大功能完成）
+
+**最后步骤**：
+- [ ] 提交所有文档更改到Git
+- [ ] 使用规范的 commit message（如：docs: 更新开发日志和下次开发提示词）
+
+---
+
+## 📖 文档更新示例
+
+**场景 1：遇到并解决了一个问题**
+
+1. **立即更新 DevLog.md**：
+```markdown
+### 2026-01-30 - 用户认证系统实现
+
+#### [问题] bcrypt 版本兼容性问题
+
+**问题现象**：API 返回 500 错误
+**根本原因**：bcrypt 5.0.0 与 passlib 1.7.4 不兼容
+**解决方案**：降级到 bcrypt 4.0.1
+**经验教训**：依赖包应固定版本
+```
+
+2. **会话结束时更新 NextDevPrompt.md**：
+```markdown
+**遇到的问题**：
+- bcrypt 版本兼容性问题
+  - 解决：降级到 bcrypt 4.0.1 并固定版本
+```
+
+---
+
+**场景 2：完成了用户认证功能**
+
+1. **更新 TODO.md**：
+```markdown
+- [X] 实现用户认证系统（JWT）
+  - [X] 实现密码加密工具
+  - [X] 实现JWT Token生成和验证
+  - [X] 实现用户注册接口
+  - [X] 实现用户登录接口
+```
+
+2. **更新 DevLog.md**：
+```markdown
+### 2026-01-30 - 用户认证系统实现完成
+
+**完成内容**：
+1. ✅ 实现密码加密工具（bcrypt）
+2. ✅ 实现JWT Token生成和验证
+...
+
+**测试结果**：
+✅ 所有接口测试通过
+```
+
+3. **更新 src/backend/README.md**：
+```markdown
+## API 端点
+
+### 认证相关
+- POST /api/v1/auth/register - 用户注册
+- POST /api/v1/auth/login - 用户登录
+...
+```
+
+4. **更新 NextDevPrompt.md**：
+```markdown
+✅ 已完成：
+- 用户认证系统（JWT）
+
+⏳ 待完成：
+- 实现用户管理 CRUD 接口
+```
+
+---
+
+**场景 3：修改了 API 接口**
+
+1. **更新 API_Design.md**：
+```markdown
+### POST /api/v1/auth/register
+
+**请求参数**：
+- email: string (必填)
+- username: string (必填)
+- password: string (必填，最少6位)
+```
+
+2. **更新 DevLog.md**：
+```markdown
+#### [决策] 密码最小长度设为6位
+
+**原因**：平衡安全性和用户体验
+**影响**：注册接口增加密码长度验证
+```
+
+3. **更新 src/backend/README.md**：
+```markdown
+## API 端点
+
+| 端点 | 方法 | 功能 | 状态码 |
+|------|------|------|--------|
+| `/api/v1/auth/register` | POST | 用户注册 | 201 |
+```
+
+---
+
+*本文档会在每次开发会话结束时更新*  
+*最后更新：2026-01-30 22:00*
