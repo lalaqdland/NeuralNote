@@ -29,14 +29,19 @@ httpx==0.26.0
 numpy==1.26.3
 pandas==2.1.4
 
+# File Storage (Optional - for OSS)
+oss2==2.18.4
+
 # Utilities
 python-multipart==0.0.6
 python-dotenv==1.0.0
 requests==2.32.5
+aiofiles==23.2.1
 
-# Development
+# Development & Testing
 pytest==7.4.3
 pytest-asyncio==0.23.2
+pytest-cov==4.1.0
 black==23.12.1
 isort==5.13.2
 flake8==6.1.0
@@ -44,4 +49,3 @@ mypy==1.7.1
 
 # Vector operations (for PgVector)
 pgvector==0.2.4
-

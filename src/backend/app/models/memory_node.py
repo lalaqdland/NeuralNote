@@ -3,6 +3,7 @@
 """
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 
 from sqlalchemy import Column, DateTime, Float, ForeignKey, String, Text
@@ -12,6 +13,15 @@ from pgvector.sqlalchemy import Vector
 
 from app.core.database import Base
 from app.models.base import TimestampMixin, UUIDMixin
+
+
+class MasteryLevel(str, Enum):
+    """掌握程度枚举"""
+    NOT_STARTED = "not_started"  # 未开始
+    LEARNING = "learning"  # 学习中
+    FAMILIAR = "familiar"  # 熟悉
+    PROFICIENT = "proficient"  # 精通
+    MASTERED = "mastered"  # 已掌握
 
 
 class MemoryNode(Base, UUIDMixin, TimestampMixin):
@@ -86,20 +96,37 @@ class MemoryNode(Base, UUIDMixin, TimestampMixin):
     )
 
     # 复习状态
+    mastery_level = Column(
+        String(20),
+        nullable=False,
+        default=MasteryLevel.NOT_STARTED.value,
+        comment="掌握程度",
+    )
+    last_review_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="上次复习时间",
+    )
+    next_review_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="下次复习时间",
+    )
     review_stats = Column(
         JSONB,
         nullable=False,
-        default={
-            "last_reviewed_at": None,
-            "next_review_due": None,
-            "review_count": 0,
-            "forgetting_curve_index": 100,
-            "mastery_status": "FRESH",
-        },
-        comment="复习状态数据",
+        default={},
+        comment="复习统计数据",
     )
 
     # 创建者
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True,
+        comment="用户ID",
+    )
     created_by = Column(
         UUID(as_uuid=True),
         ForeignKey("users.id"),

@@ -168,33 +168,221 @@ mypy .
 - `test`: 测试相关
 - `chore`: 构建/工具相关
 
-## 测试
+## 功能测试指南
+
+### 已实现的功能
+
+✅ **后端功能（已完成，可测试）**
+- 用户认证系统
+- 知识图谱管理
+- 记忆节点管理
+- 文件上传功能
+- OCR 识别服务
+- AI 分析服务
+- 复习系统（SM-2 算法）
+- **向量相似度搜索** ✨ 新功能
+
+### 测试方法
+
+#### 方法 1：Swagger UI（推荐）
+
+1. **启动后端服务**
+   ```bash
+   cd src/backend
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+2. **访问 Swagger UI**
+   ```
+   http://localhost:8000/docs
+   ```
+
+3. **测试流程**
+
+   **步骤 1：注册用户**
+   - 找到 `POST /api/v1/auth/register`
+   - 点击 "Try it out"
+   - 填写信息：
+     ```json
+     {
+       "email": "test@example.com",
+       "username": "测试用户",
+       "password": "password123"
+     }
+     ```
+
+   **步骤 2：登录获取 Token**
+   - 找到 `POST /api/v1/auth/login`
+   - 填写登录信息
+   - 复制返回的 `access_token`
+
+   **步骤 3：授权**
+   - 点击页面右上角的 🔓 "Authorize" 按钮
+   - 输入：`Bearer 你的token`（注意空格）
+   - 点击 "Authorize"
+
+   **步骤 4：测试其他功能**
+   - 创建知识图谱：`POST /api/v1/graphs/`
+   - 上传文件：`POST /api/v1/files/upload`
+   - OCR 识别：`POST /api/v1/ocr/ocr`
+   - AI 分析：`POST /api/v1/ai/analyze`
+   - 复习系统：`GET /api/v1/review/queue`
+   - **向量搜索**：`POST /api/v1/vector-search/search` ✨
+
+#### 方法 2：使用测试脚本
 
 ```bash
 # 运行所有测试
-pytest
+python -m pytest tests/ -v
 
 # 运行特定测试
-pytest tests/test_models.py
+python -m pytest tests/test_auth.py -v
+python -m pytest tests/test_review_service.py -v
+
+# 测试向量搜索功能（需要配置 OPENAI_API_KEY）
+python test_vector_search.py
 
 # 生成覆盖率报告
 pytest --cov=app tests/
 ```
 
+#### 方法 3：使用 Postman
+
+1. 访问：http://localhost:8000/openapi.json
+2. 复制 JSON 内容
+3. 在 Postman 中导入
+
+### 完整测试流程（推荐）
+
+1. **注册并登录** → 获取 Token
+2. **创建知识图谱** → 获取 graph_id
+3. **上传题目图片** → 获取 file_id
+4. **OCR 识别** → 获取文本内容
+5. **AI 分析** → 自动创建记忆节点
+6. **查询节点列表** → 查看创建的节点
+7. **开始复习** → 测试复习系统
+8. **提交复习结果** → 更新记忆状态
+9. **查看统计** → 查看复习数据
+10. **向量搜索** → 测试智能搜索功能 ✨
+
+### 可测试的功能列表
+
+**1. 用户认证**
+- ✅ 用户注册
+- ✅ 用户登录
+- ✅ Token 验证
+
+**2. 知识图谱管理**
+- ✅ 创建知识图谱
+- ✅ 查询图谱列表（分页）
+- ✅ 查询图谱详情
+- ✅ 更新图谱信息
+- ✅ 删除图谱
+- ✅ 查询图谱统计
+
+**3. 记忆节点管理**
+- ✅ 创建记忆节点（概念、题目）
+- ✅ 查询节点列表（分页、筛选）
+- ✅ 查询节点详情
+- ✅ 更新节点信息
+- ✅ 删除节点
+
+**4. 节点关联**
+- ✅ 创建节点关联
+- ✅ 查询节点关联
+- ✅ 删除节点关联
+
+**5. 文件上传**
+- ✅ 上传图片文件
+- ✅ 查询文件列表
+- ✅ 查询文件详情
+- ✅ 删除文件
+
+**6. OCR 识别**
+- ✅ 通用文字识别
+- ✅ 数学公式识别
+
+**7. AI 分析**
+- ✅ 文本分析
+- ✅ 知识点提取
+- ✅ 向量嵌入生成
+- ✅ 完整题目分析流程
+
+**8. 复习系统**
+- ✅ 获取复习队列（4种模式）
+- ✅ 提交复习结果
+- ✅ 查询复习统计
+
+**9. 向量搜索** ✨ 新功能
+- ✅ 文本查询搜索相似节点
+- ✅ 查找与指定节点相似的节点
+- ✅ 节点推荐（学习路径）
+- ✅ 节点聚类（相似度分组）
+- ✅ 更新向量嵌入（单个/批量）
+
+### 向量搜索功能说明 ✨
+
+**使用场景**：
+1. **智能搜索**：输入"如何求导数"，找到所有相关的题目和概念
+2. **学习推荐**：学完一个知识点后，推荐相关内容
+3. **知识发现**：自动发现知识图谱中的相似主题簇
+4. **去重检测**：识别重复或高度相似的题目
+
+**API 端点**：
+- `POST /api/v1/vector-search/search` - 文本查询搜索
+- `GET /api/v1/vector-search/similar/{node_id}` - 查找相似节点
+- `GET /api/v1/vector-search/recommend/{node_id}` - 节点推荐
+- `GET /api/v1/vector-search/cluster/{graph_id}` - 节点聚类
+- `POST /api/v1/vector-search/update-embedding` - 更新向量嵌入
+
+**注意事项**：
+- ⚠️ 需要配置 `OPENAI_API_KEY` 才能使用向量搜索功能
+- ⚠️ 首次使用需要为节点生成向量嵌入（调用 update-embedding 接口）
+- ⚠️ 批量更新向量嵌入可能耗时较长
+
 ## 常见问题
 
-### 1. 数据库连接失败
+### 1. 后端启动失败
 
-检查 Docker 服务是否运行：
-```bash
-docker-compose ps
-```
+**检查：**
+- Docker 服务是否运行：`docker-compose ps`
+- 端口是否被占用：`netstat -ano | findstr :8000`
+- 虚拟环境是否激活
 
-### 2. 端口被占用
+### 2. 数据库连接失败
 
-修改 `.env` 中的端口配置或停止占用端口的进程。
+**检查：**
+- PostgreSQL 容器是否运行
+- 端口是否正确（15432）
+- `.env` 文件配置是否正确
 
-### 3. 模型导入错误
+### 3. OCR 识别失败
+
+**原因：**
+- 百度 OCR 已配置，应该可以正常使用
+- 如果失败，检查 API 额度是否用完
+
+### 4. AI 分析失败
+
+**原因：**
+- 需要配置 DeepSeek 或 OpenAI API Key
+- 检查 API Key 是否有效
+- 检查 API 额度是否充足
+
+### 5. 向量搜索失败 ✨
+
+**原因：**
+- 需要配置 OpenAI API Key（用于生成向量嵌入）
+- 节点可能还没有生成向量嵌入
+- 解决：调用 `/api/v1/vector-search/batch-update-embedding` 批量生成
+
+### 6. Token 过期
+
+**解决：**
+- 重新登录获取新的 Token
+- Token 默认有效期 30 分钟
+
+### 7. 模型导入错误
 
 确保已安装所有依赖：
 ```bash
@@ -203,14 +391,17 @@ pip install -r requirements.txt
 
 ## 下一步开发
 
-- [ ] 实现用户认证系统（JWT）
-- [ ] 创建 Pydantic Schemas
-- [ ] 实现 CRUD 操作
-- [ ] 添加文件上传功能
-- [ ] 集成 OCR 服务
-- [ ] 集成 AI 分析服务
-- [ ] 实现向量搜索
-- [ ] 添加单元测试
+- [X] 实现用户认证系统（JWT）✅
+- [X] 创建 Pydantic Schemas ✅
+- [X] 实现 CRUD 操作 ✅
+- [X] 添加文件上传功能 ✅
+- [X] 集成 OCR 服务 ✅
+- [X] 集成 AI 分析服务 ✅
+- [X] 实现复习系统 ✅
+- [X] 实现向量相似度搜索 ✅
+- [ ] 优化 AI 提示词
+- [ ] 实现 OCR 结果手动校正
+- [ ] 前端开发
 
 ## 相关文档
 

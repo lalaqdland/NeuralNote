@@ -42,7 +42,9 @@ class TestUserRegistration:
         )
         
         assert response.status_code == 400
-        assert "already registered" in response.json()["detail"].lower()
+        detail = response.json()["detail"]
+        # 支持中英文错误消息
+        assert "already registered" in detail.lower() or "已被注册" in detail or "已注册" in detail
 
     @pytest.mark.asyncio
     async def test_register_duplicate_username(self, client: AsyncClient, test_user: User):
@@ -57,7 +59,9 @@ class TestUserRegistration:
         )
         
         assert response.status_code == 400
-        assert "already taken" in response.json()["detail"].lower()
+        detail = response.json()["detail"]
+        # 支持中英文错误消息
+        assert "already taken" in detail.lower() or "已被使用" in detail or "已使用" in detail
 
     @pytest.mark.asyncio
     async def test_register_invalid_email(self, client: AsyncClient):
@@ -120,7 +124,9 @@ class TestUserLogin:
         )
         
         assert response.status_code == 401
-        assert "incorrect" in response.json()["detail"].lower()
+        detail = response.json()["detail"]
+        # 支持中英文错误消息
+        assert "incorrect" in detail.lower() or "错误" in detail or "不正确" in detail
 
     @pytest.mark.asyncio
     async def test_login_nonexistent_user(self, client: AsyncClient):

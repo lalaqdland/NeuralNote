@@ -13,6 +13,8 @@ from app.api.v1.endpoints import (
     file_uploads,
     ocr,
     ai_analysis,
+    reviews,
+    vector_search,
 )
 
 api_router = APIRouter()
@@ -26,4 +28,6 @@ api_router.include_router(memory_nodes.router, prefix="/nodes", tags=["Memory No
 api_router.include_router(file_uploads.router, prefix="/files", tags=["File Uploads"])
 api_router.include_router(ocr.router, prefix="/ocr", tags=["OCR"])
 api_router.include_router(ai_analysis.router, prefix="/ai", tags=["AI Analysis"])
+api_router.include_router(reviews.router, prefix="/reviews", tags=["Reviews"])
+api_router.include_router(vector_search.router, prefix="/vector-search", tags=["Vector Search"])
 
