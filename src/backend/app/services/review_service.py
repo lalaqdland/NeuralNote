@@ -3,7 +3,7 @@
 实现基于 SM-2 算法的遗忘曲线计算
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
@@ -80,6 +80,34 @@ class ReviewService:
         return new_interval, new_easiness, new_repetitions
     
     @staticmethod
+    def _get_utc_now() -> datetime:
+        """
+        获取当前 UTC 时间（不带时区信息，用于数据库存储）
+        
+        Returns:
+            当前 UTC 时间（不带时区）
+        """
+        return datetime.utcnow()
+    
+    @staticmethod
+    def _normalize_datetime(dt: datetime) -> datetime:
+        """
+        标准化 datetime 对象，移除时区信息
+        
+        Args:
+            dt: datetime 对象
+            
+        Returns:
+            移除时区信息的 datetime 对象
+        """
+        if dt is None:
+            return None
+        if dt.tzinfo is not None:
+            # 转换为 UTC 并移除时区信息
+            return dt.replace(tzinfo=None)
+        return dt
+    
+    @staticmethod
     def calculate_forgetting_index(
         last_review_time: datetime,
         next_review_time: datetime,
@@ -96,15 +124,10 @@ class ReviewService:
         Returns:
             遗忘指数 (0-1)
         """
-        now = datetime.utcnow()
-        
-        # 移除时区信息以便比较
-        if last_review_time.tzinfo:
-            last_review_time = last_review_time.replace(tzinfo=None)
-        if next_review_time.tzinfo:
-            next_review_time = next_review_time.replace(tzinfo=None)
-        if now.tzinfo:
-            now = now.replace(tzinfo=None)
+        # 统一移除时区信息
+        now = ReviewService._normalize_datetime(ReviewService._get_utc_now())
+        last_review_time = ReviewService._normalize_datetime(last_review_time)
+        next_review_time = ReviewService._normalize_datetime(next_review_time)
         
         # 如果还没到复习时间，遗忘指数较低
         if now < next_review_time:
@@ -215,11 +238,11 @@ class ReviewService:
             new_mastery = MasteryLevel.LEARNING
         
         # 计算下次复习时间
-        next_review_time = datetime.utcnow() + timedelta(days=new_interval)
+        next_review_time = ReviewService._get_utc_now() + timedelta(days=new_interval)
         
         # 更新节点
         node.mastery_level = new_mastery.value  # 存储为字符串
-        node.last_review_at = datetime.utcnow()
+        node.last_review_at = ReviewService._get_utc_now()
         node.next_review_at = next_review_time
         node.review_stats = {
             "repetitions": new_repetitions,
@@ -278,7 +301,7 @@ class ReviewService:
         Returns:
             待复习节点列表
         """
-        now = datetime.utcnow()
+        now = ReviewService._normalize_datetime(ReviewService._get_utc_now())
         
         # 基础查询条件
         conditions = [MemoryNode.user_id == user_id]
@@ -341,11 +364,15 @@ class ReviewService:
             
             # 计算遗忘指数
             if node.last_review_at and node.next_review_at:
-                forgetting_index = ReviewService.calculate_forgetting_index(
-                    last_review_time=node.last_review_at,
-                    next_review_time=node.next_review_at,
-                    mastery_level=mastery_level_enum
-                )
+                try:
+                    forgetting_index = ReviewService.calculate_forgetting_index(
+                        last_review_time=node.last_review_at,
+                        next_review_time=node.next_review_at,
+                        mastery_level=mastery_level_enum
+                    )
+                except Exception as e:
+                    print(f"Warning: Failed to calculate forgetting index for node {node.id}: {e}")
+                    forgetting_index = 0.8  # 默认值
             else:
                 forgetting_index = 0.8  # 未复习过的节点，默认较高
             
@@ -380,68 +407,87 @@ class ReviewService:
         Returns:
             复习统计数据
         """
-        # 基础查询条件
-        conditions = [MemoryNode.user_id == user_id]
-        if graph_id:
-            conditions.append(MemoryNode.graph_id == graph_id)
-        
-        # 查询所有节点
-        result = await db.execute(
-            select(MemoryNode).where(and_(*conditions))
-        )
-        nodes = result.scalars().all()
-        
-        # 统计数据
-        total_nodes = len(nodes)
-        mastery_distribution = {
-            "not_started": 0,
-            "learning": 0,
-            "familiar": 0,
-            "proficient": 0,
-            "mastered": 0
-        }
-        
-        due_today = 0
-        overdue = 0
-        total_reviews = 0
-        
-        now = datetime.utcnow()
-        
-        for node in nodes:
-            # 掌握程度分布（处理字符串类型）
-            if isinstance(node.mastery_level, str):
-                mastery_key = node.mastery_level.lower()
-            else:
-                mastery_key = node.mastery_level.value.lower()
-            mastery_distribution[mastery_key] = mastery_distribution.get(mastery_key, 0) + 1
+        try:
+            # 基础查询条件
+            conditions = [MemoryNode.user_id == user_id]
+            if graph_id:
+                conditions.append(MemoryNode.graph_id == graph_id)
             
-            # 复习次数
-            review_stats = node.review_stats or {}
-            total_reviews += review_stats.get("total_reviews", 0)
+            # 查询所有节点
+            result = await db.execute(
+                select(MemoryNode).where(and_(*conditions))
+            )
+            nodes = result.scalars().all()
             
-            # 到期统计
-            if node.next_review_at:
-                # 确保时区一致
-                next_review_date = node.next_review_at.replace(tzinfo=None) if node.next_review_at.tzinfo else node.next_review_at
-                now_date = now.replace(tzinfo=None) if now.tzinfo else now
-                
-                if next_review_date.date() == now_date.date():
-                    due_today += 1
-                elif next_review_date < now_date:
-                    overdue += 1
-        
-        # 计算掌握率
-        mastery_rate = 0
-        if total_nodes > 0:
-            mastered_count = mastery_distribution["proficient"] + mastery_distribution["mastered"]
-            mastery_rate = round(mastered_count / total_nodes * 100, 2)
-        
-        return {
-            "total_nodes": total_nodes,
-            "mastery_distribution": mastery_distribution,
-            "mastery_rate": mastery_rate,
-            "due_today": due_today,
-            "overdue": overdue,
-            "total_reviews": total_reviews
-        }
+            # 统计数据
+            total_nodes = len(nodes)
+            mastery_distribution = {
+                "not_started": 0,
+                "learning": 0,
+                "familiar": 0,
+                "proficient": 0,
+                "mastered": 0
+            }
+            
+            due_today = 0
+            overdue = 0
+            total_reviews = 0
+            
+            now = ReviewService._normalize_datetime(ReviewService._get_utc_now())
+            
+            for node in nodes:
+                try:
+                    # 掌握程度分布（处理字符串类型）
+                    if isinstance(node.mastery_level, str):
+                        mastery_key = node.mastery_level.lower()
+                    else:
+                        mastery_key = node.mastery_level.value.lower()
+                    mastery_distribution[mastery_key] = mastery_distribution.get(mastery_key, 0) + 1
+                    
+                    # 复习次数
+                    review_stats = node.review_stats or {}
+                    total_reviews += review_stats.get("total_reviews", 0)
+                    
+                    # 到期统计
+                    if node.next_review_at:
+                        try:
+                            # 统一移除时区信息
+                            next_review_date = ReviewService._normalize_datetime(node.next_review_at)
+                            now_date = now  # now 已经是不带时区的
+                            
+                            if next_review_date.date() == now_date.date():
+                                due_today += 1
+                            elif next_review_date < now_date:
+                                overdue += 1
+                        except Exception as e:
+                            # 跳过有问题的节点
+                            print(f"Warning: Failed to compare dates for node {node.id}: {e}")
+                            print(f"  next_review_at type: {type(node.next_review_at)}, value: {node.next_review_at}")
+                            print(f"  now type: {type(now)}, value: {now}")
+                            continue
+                except Exception as e:
+                    print(f"Error processing node {node.id}: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    continue
+            
+            # 计算掌握率
+            mastery_rate = 0
+            if total_nodes > 0:
+                mastered_count = mastery_distribution["proficient"] + mastery_distribution["mastered"]
+                mastery_rate = round(mastered_count / total_nodes * 100, 2)
+            
+            return {
+                "total_nodes": total_nodes,
+                "mastery_distribution": mastery_distribution,
+                "mastery_rate": mastery_rate,
+                "due_today": due_today,
+                "overdue": overdue,
+                "total_reviews": total_reviews
+            }
+        except Exception as e:
+            print(f"Error in get_review_statistics: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 

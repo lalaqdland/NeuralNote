@@ -44,13 +44,27 @@ class TestGraphCreation:
     @pytest.mark.asyncio
     async def test_create_graph_missing_fields(self, client: AsyncClient, auth_headers: dict):
         """测试缺少必填字段"""
+        # 只有 name 是必填的，其他字段都是可选的
+        # 所以只提供 name 应该成功创建
         response = await client.post(
             "/api/v1/graphs/",
             headers=auth_headers,
-            json={"name": "测试图谱"}  # 缺少其他字段
+            json={"name": "测试图谱"}
         )
         
-        assert response.status_code == 422
+        # 应该成功创建（201）而不是验证失败（422）
+        assert response.status_code == 201
+        data = response.json()
+        assert data["name"] == "测试图谱"
+        
+        # 测试真正缺少必填字段的情况（不提供 name）
+        response2 = await client.post(
+            "/api/v1/graphs/",
+            headers=auth_headers,
+            json={"description": "只有描述"}
+        )
+        
+        assert response2.status_code == 422
 
 
 class TestGraphRetrieval:

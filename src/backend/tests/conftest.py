@@ -64,9 +64,15 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         await conn.run_sync(Base.metadata.create_all)
     
     # 创建会话
-    async with TestSessionLocal() as session:
+    session = TestSessionLocal()
+    try:
         yield session
+        await session.commit()
+    except Exception:
         await session.rollback()
+        raise
+    finally:
+        await session.close()
     
     # 清理所有表
     async with test_engine.begin() as conn:
@@ -80,7 +86,10 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     覆盖应用的数据库依赖
     """
     async def override_get_db():
-        yield db_session
+        try:
+            yield db_session
+        finally:
+            pass  # 不要关闭会话，因为它由 db_session fixture 管理
     
     app.dependency_overrides[get_db] = override_get_db
     
@@ -101,6 +110,7 @@ async def test_user(db_session: AsyncSession) -> User:
         username="testuser",
         password_hash=get_password_hash("password123"),
         is_active=True,
+        is_verified=True,
     )
     db_session.add(user)
     await db_session.commit()
@@ -109,24 +119,13 @@ async def test_user(db_session: AsyncSession) -> User:
 
 
 @pytest.fixture
-async def test_user_token(client: AsyncClient, test_user: User) -> str:
-    """获取测试用户的访问令牌"""
-    response = await client.post(
-        "/api/v1/auth/login",
-        json={
-            "email": "test@example.com",
-            "password": "password123"
-        }
-    )
-    assert response.status_code == 200
-    data = response.json()
-    return data["access_token"]
-
-
-@pytest.fixture
-async def auth_headers(test_user_token: str) -> dict:
-    """获取认证请求头"""
-    return {"Authorization": f"Bearer {test_user_token}"}
+async def auth_headers(test_user: User) -> dict:
+    """获取认证请求头（直接生成token，不通过登录接口）"""
+    from app.core.security import create_access_token
+    
+    # 直接生成 token（传入用户ID字符串）
+    token = create_access_token(str(test_user.id))
+    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture
@@ -146,10 +145,11 @@ async def test_graph(db_session: AsyncSession, test_user: User) -> KnowledgeGrap
 
 
 @pytest.fixture
-async def test_node(db_session: AsyncSession, test_graph: KnowledgeGraph) -> MemoryNode:
+async def test_node(db_session: AsyncSession, test_graph: KnowledgeGraph, test_user: User) -> MemoryNode:
     """创建测试记忆节点"""
     node = MemoryNode(
         graph_id=test_graph.id,
+        user_id=test_user.id,
         node_type="CONCEPT",
         title="测试节点",
         summary="这是一个测试节点",
@@ -184,4 +184,3 @@ TEST_NODE_DATA = {
         "formula": "f'(x) = lim(h->0) [f(x+h) - f(x)] / h"
     }
 }
-

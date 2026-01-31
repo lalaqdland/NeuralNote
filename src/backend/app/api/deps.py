@@ -67,7 +67,7 @@ async def get_current_user(
         if user_id is None:
             raise credentials_exception
             
-    except JWTError:
+    except JWTError as e:
         raise credentials_exception
     
     # 查询用户

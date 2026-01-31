@@ -290,9 +290,9 @@ class TestNodeRelations:
         )
         relation_id = relation_response.json()["id"]
         
-        # 删除关联
+        # 删除关联（正确的路径是 /api/v1/nodes/relations/{relation_id}）
         delete_response = await client.delete(
-            f"/api/v1/nodes/{node1_id}/relations/{relation_id}",
+            f"/api/v1/nodes/relations/{relation_id}",
             headers=auth_headers
         )
         
