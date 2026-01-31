@@ -80,6 +80,7 @@ async def create_memory_node(
         # 创建新节点
         new_node = MemoryNode(
             graph_id=node_data.graph_id,
+            user_id=current_user.id,
             created_by=current_user.id,
             node_type=node_data.node_type,
             title=node_data.title,
