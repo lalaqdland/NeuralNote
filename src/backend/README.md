@@ -24,7 +24,16 @@ src/backend/
 │   │       ├── api.py         # 路由聚合
 │   │       └── endpoints/     # 端点实现
 │   │           ├── __init__.py
-│   │           └── health.py  # 健康检查
+│   │           ├── health.py  # 健康检查
+│   │           ├── auth.py    # 用户认证
+│   │           ├── users.py   # 用户管理
+│   │           ├── knowledge_graphs.py  # 知识图谱
+│   │           ├── memory_nodes.py      # 记忆节点
+│   │           ├── file_uploads.py      # 文件上传
+│   │           ├── ocr.py               # OCR识别
+│   │           ├── ai_analysis.py       # AI分析
+│   │           ├── reviews.py           # 复习系统
+│   │           └── vector_search.py     # 向量搜索
 │   ├── core/                  # 核心配置
 │   │   ├── __init__.py
 │   │   ├── config.py          # 应用配置
@@ -41,15 +50,49 @@ src/backend/
 │   │   ├── view_config.py     # 视图配置模型
 │   │   ├── review_log.py      # 复习记录模型
 │   │   └── file_upload.py     # 文件上传记录
-│   ├── schemas/               # Pydantic 模型（待实现）
-│   │   └── __init__.py
-│   └── services/              # 业务逻辑（待实现）
-│       └── __init__.py
-├── tests/                     # 测试（待实现）
-├── .env.example               # 环境变量示例
+│   ├── schemas/               # Pydantic 模型
+│   │   ├── __init__.py
+│   │   ├── user.py
+│   │   ├── knowledge_graph.py
+│   │   ├── memory_node.py
+│   │   ├── file_upload.py
+│   │   ├── ocr.py
+│   │   ├── ai_analysis.py
+│   │   ├── review.py
+│   │   └── vector_search.py
+│   └── services/              # 业务逻辑
+│       ├── __init__.py
+│       ├── file_storage_service.py
+│       ├── ocr_service.py
+│       ├── ai_service.py
+│       ├── review_service.py
+│       └── vector_search_service.py
+├── tests/                     # ⚠️ 测试文件（必须放这里！）
+│   ├── __init__.py
+│   ├── conftest.py           # pytest 配置
+│   ├── test_auth.py          # 认证测试
+│   ├── test_api.py           # API 测试
+│   ├── test_knowledge_graphs.py
+│   ├── test_memory_nodes.py
+│   ├── test_users.py
+│   ├── test_file_storage.py
+│   ├── test_ocr_service.py
+│   ├── test_ai_service.py
+│   ├── test_review_service.py
+│   ├── test_review_modes.py
+│   └── test_vector_search.py
+├── uploads/                   # 上传文件存储
+│   └── images/
 ├── main.py                    # 应用入口
+├── pytest.ini                 # pytest 配置
 └── README.md                  # 本文档
 ```
+
+**⚠️ 重要规范**：
+- **所有测试文件必须放在 `tests/` 目录**
+- **不要在 `src/backend/` 根目录放置测试文件**
+- **测试文件命名规范**：`test_*.py`
+- **违反此规范将导致项目结构混乱**
 
 ## 快速开始
 

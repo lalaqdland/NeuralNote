@@ -255,34 +255,35 @@ NeuralNote-Project/
 ├── TODO.md                      # 开发任务清单
 ├── docs/                        # 文档目录
 │   ├── 01_Product/              # 产品文档（PRD）
-│   ├── 02_Tech/                 # 技术文档（API Design）
+│   ├── 02_Tech/                 # 技术文档（API Design、Git Workflow）
 │   └── 03_Logs/                 # 开发日志（DevLog）
-├── src/                         # 源代码目录（开发时创建）
+├── src/                         # 源代码目录
 │   ├── backend/                 # 后端代码
 │   │   ├── main.py              # FastAPI入口
-│   │   ├── config.py            # 配置管理
-│   │   ├── models/              # 数据模型
-│   │   ├── schemas/             # Pydantic模式
-│   │   ├── api/                 # API路由
-│   │   ├── services/            # 业务逻辑
-│   │   ├── utils/               # 工具函数
-│   │   └── ml/                  # ML/AI模块
+│   │   ├── app/                 # 应用代码
+│   │   │   ├── api/             # API路由
+│   │   │   ├── models/          # 数据模型
+│   │   │   ├── schemas/         # Pydantic模式
+│   │   │   └── services/        # 业务逻辑
+│   │   └── tests/               # ⚠️ 测试文件（必须放这里！）
+│   │       ├── test_auth.py
+│   │       ├── test_api.py
+│   │       └── test_*.py
 │   └── frontend/                # 前端代码
 │       ├── public/
-│       ├── src/
-│       │   ├── components/      # React组件
-│       │   ├── pages/           # 页面
-│       │   ├── store/           # Redux store
-│       │   ├── hooks/           # 自定义Hooks
-│       │   ├── services/        # API服务
-│       │   ├── utils/           # 工具函数
-│       │   └── styles/          # 样式文件
-│       └── package.json
-├── docker/                      # Docker配置（开发时创建）
-│   ├── backend/
-│   └── frontend/
-└── scripts/                     # 辅助脚本（开发时创建）
+│       └── src/
+│           ├── components/      # React组件
+│           ├── pages/           # 页面
+│           ├── store/           # Redux store
+│           └── services/        # API服务
+├── docker/                      # Docker配置
+└── scripts/                     # 辅助脚本
 ```
+
+**⚠️ 重要规范**：
+- 所有测试文件必须放在 `src/backend/tests/` 目录
+- 不要在 `src/backend/` 根目录放置测试文件
+- 测试文件命名：`test_*.py`
 
 ---
 
@@ -302,6 +303,17 @@ NeuralNote-Project/
 - **JavaScript/TypeScript**：遵循 ESLint 配置
 - **提交信息**：使用 Conventional Commits 格式
 - **测试**：新增功能需包含单元测试
+- **测试文件位置**：所有测试文件必须放在 `src/backend/tests/` 目录
+
+### Git 工作流规范
+
+- **分支策略**：
+  - `master`：稳定版本，推送到 GitHub ✅
+  - `dev`：开发分支，仅本地使用 ❌ 不推送到 GitHub
+- **合并规则**：使用 `git merge dev --no-ff` 保留合并历史
+- **推送规则**：只推送 master 分支到 GitHub
+
+详细规范请查看：[Git 工作流程文档](docs/02_Tech/Git_Workflow.md)
 
 ### 文档更新
 
