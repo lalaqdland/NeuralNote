@@ -16,6 +16,54 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    // 代码分割优化
+    rollupOptions: {
+      output: {
+        // 手动分割代码块
+        manualChunks: {
+          // React 核心库
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Redux 状态管理
+          'redux-vendor': ['@reduxjs/toolkit', 'react-redux'],
+          // Ant Design UI 库
+          'antd-vendor': ['antd', '@ant-design/icons'],
+          // 图表库
+          'chart-vendor': ['recharts', 'cytoscape', 'cytoscape-dagre'],
+          // 3D 可视化库
+          '3d-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
+        },
+        // 优化 chunk 文件名
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+      },
+    },
+    // 压缩配置
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        // 生产环境移除 console
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    // chunk 大小警告限制
+    chunkSizeWarningLimit: 1000,
+  },
+  // 优化依赖预构建
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@reduxjs/toolkit',
+      'react-redux',
+      'antd',
+      '@ant-design/icons',
+      'axios',
+      'recharts',
+      'cytoscape',
+    ],
   },
 });
 
