@@ -45,9 +45,11 @@ services:
   # 后端服务
   backend:
     build:
-      context: ./src/backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/backend/Dockerfile
     container_name: neuralnote-backend
+    env_file:
+      - src/backend/.env
     environment:
       # 数据库配置
       DATABASE_URL: postgresql+asyncpg://neuralnote:neuralnote_dev_password@postgres:5432/neuralnote_dev

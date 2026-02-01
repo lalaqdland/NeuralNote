@@ -43,7 +43,7 @@ WORKDIR /app
 COPY --from=builder /root/.local /root/.local
 
 # 复制应用代码
-COPY --chown=neuralnote:neuralnote . .
+COPY src/backend/ .
 
 # 切换到非 root 用户
 USER neuralnote
