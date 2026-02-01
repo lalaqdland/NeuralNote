@@ -46,7 +46,10 @@ const Login: React.FC = () => {
       message.success('注册成功！请登录');
       setActiveTab('login');
     } catch (error: any) {
-      message.error(error.response?.data?.detail || '注册失败，请稍后重试');
+      console.error('注册错误:', error);
+      console.error('错误响应:', error.response);
+      const errorMsg = error.response?.data?.detail || error.message || '注册失败，请稍后重试';
+      message.error(errorMsg);
     } finally {
       setLoading(false);
     }
