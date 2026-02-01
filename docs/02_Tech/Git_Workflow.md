@@ -115,10 +115,10 @@ git branch
 #       dev
 ```
 
-#### 步骤 3：合并 dev 到 master
+#### 步骤 3：合并 dev 到 master（⚠️ 必须使用 --no-ff）
 
 ```bash
-# 使用 --no-ff 保留合并历史
+# ✅ 正确：使用 --no-ff 保留合并历史（强制要求）
 git merge dev --no-ff -m "Merge branch 'dev': 文件上传功能
 
 ✨ 新增功能：
@@ -135,12 +135,48 @@ git merge dev --no-ff -m "Merge branch 'dev': 文件上传功能
 - 统一存储接口
 - 自动切换本地/OSS
 - 完整的错误处理"
+
+# ❌ 错误：不使用 --no-ff（禁止！）
+git merge dev  # 这会导致 fast-forward，丢失分支历史
 ```
 
-**为什么使用 `--no-ff`？**
-- 保留完整的分支合并历史
-- 可以清楚地看到哪些提交是从 dev 合并过来的
-- 方便回滚整个功能
+**⚠️ 为什么必须使用 `--no-ff`？（项目强制要求）**
+
+1. **保留完整的分支合并历史**
+   - 可以清楚地看到哪些提交是从 dev 合并过来的
+   - Git 图会显示分支结构，而不是一条直线
+
+2. **便于回滚整个功能**
+   - 如果需要回滚，可以直接回滚整个合并提交
+   - 不会影响其他功能
+
+3. **清晰的开发历史**
+   - 可以看出项目的开发节奏和功能迭代
+   - 便于代码审查和问题追踪
+
+**Git 图对比**：
+
+```
+使用 --no-ff（正确）：
+*   e2c4fca (master) Merge branch 'dev': 文件上传功能
+|\  
+| * 8c3177c (dev) feat: 完成前端基础架构
+| * 315ae25 refactor: 移动文档
+| * 71bae2b fix: 修正规范
+|/  
+*   83ede27 Merge branch 'dev': 后端功能
+
+不使用 --no-ff（错误）：
+* 8c3177c (master, dev) feat: 完成前端基础架构
+* 315ae25 refactor: 移动文档
+* 71bae2b fix: 修正规范
+* 83ede27 Merge branch 'dev': 后端功能
+```
+
+**🔴 项目规范**：
+- ✅ **必须使用** `git merge dev --no-ff`
+- ❌ **禁止使用** `git merge dev`（会触发 fast-forward）
+- ✅ 保持分支历史可见，便于管理和回滚
 
 #### 步骤 4：推送到 GitHub
 
@@ -383,15 +419,55 @@ git branch -r
 - ✅ 功能完整可用
 - ✅ 文档已更新
 
-### 3. 使用 --no-ff 合并
+### 3. 必须使用 --no-ff 合并（项目强制要求）
 
 ```bash
-# ✅ 推荐：保留合并历史
+# ✅ 正确：保留合并历史（强制要求）
 git merge dev --no-ff -m "Merge: 功能描述"
 
-# ❌ 不推荐：快进合并（丢失分支信息）
+# ❌ 错误：快进合并（禁止！会丢失分支信息）
 git merge dev
 ```
+
+**为什么必须使用 --no-ff？**
+
+这是项目的强制规范，原因如下：
+
+1. **保留分支历史**
+   - 可以清楚地看到哪些提交来自 dev 分支
+   - Git 图会显示分支结构，而不是一条直线
+
+2. **便于功能管理**
+   - 每个功能都有明确的合并点
+   - 方便回滚整个功能模块
+
+3. **清晰的开发历史**
+   - 可以看出项目的开发节奏
+   - 便于代码审查和问题追踪
+
+**Git 图对比**：
+
+```
+使用 --no-ff（正确）：
+*   e2c4fca (master) Merge branch 'dev': 前端开发
+|\  
+| * 8c3177c (dev) feat: 完成前端架构
+| * 315ae25 refactor: 移动文档
+|/  
+*   83ede27 Merge branch 'dev': 后端功能
+    ↑ 可以看到分支结构
+
+不使用 --no-ff（错误）：
+* 8c3177c (master, dev) feat: 完成前端架构
+* 315ae25 refactor: 移动文档
+* 83ede27 Merge branch 'dev': 后端功能
+    ↑ 看起来像一条直线，丢失了分支信息
+```
+
+**🔴 重要**：
+- 每次合并都必须使用 `--no-ff`
+- 这是项目的强制规范，不可违反
+- 保持 Git 历史的可读性和可维护性
 
 ### 4. 定期同步 master 到 dev
 
@@ -577,17 +653,24 @@ git merge master
    git push origin master  # 正确！
    ```
 
-3. **📁 所有测试文件必须放在 tests/ 目录**
+3. **🔀 合并时必须使用 --no-ff（强制要求）**
+   ```bash
+   git merge dev --no-ff -m "Merge: 描述"  # 正确！
+   git merge dev                           # 禁止！
+   ```
+   **原因**：保留分支历史，避免 fast-forward，使 Git 图显示分支结构
+
+4. **📁 所有测试文件必须放在 tests/ 目录**
    ```
    src/backend/tests/test_*.py  # 正确！
    src/backend/test_*.py        # 错误！
    ```
 
-4. **🔒 不要提交敏感信息**
+5. **🔒 不要提交敏感信息**
    - API 密钥放在 `.env` 文件
    - 确保 `.env` 在 `.gitignore` 中
 
-5. **📝 使用规范的提交信息**
+6. **📝 使用规范的提交信息**
    ```bash
    git commit -m "feat: 功能描述"
    git commit -m "fix: 修复描述"

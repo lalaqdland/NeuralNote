@@ -6,10 +6,15 @@
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.database import get_db
+from app.models.user import User
 
 # 密码加密上下文
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -162,4 +167,50 @@ def verify_token(token: str, token_type: str = "access") -> Optional[str]:
         return None
     
     return user_id
+
+
+# HTTP Bearer 认证方案
+security = HTTPBearer()
+
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: AsyncSession = Depends(get_db)
+) -> User:
+    """
+    获取当前登录用户
+    
+    Args:
+        credentials: HTTP Bearer 凭证
+        db: 数据库会话
+        
+    Returns:
+        User: 当前用户对象
+        
+    Raises:
+        HTTPException: 如果认证失败
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    # 验证 Token
+    token = credentials.credentials
+    user_id = verify_token(token, token_type="access")
+    
+    if user_id is None:
+        raise credentials_exception
+    
+    # 查询用户
+    from sqlalchemy import select
+    stmt = select(User).where(User.id == int(user_id))
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
+    
+    if user is None:
+        raise credentials_exception
+    
+    return user
 

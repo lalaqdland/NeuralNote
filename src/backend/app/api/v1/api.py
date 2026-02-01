@@ -15,6 +15,7 @@ from app.api.v1.endpoints import (
     ai_analysis,
     reviews,
     vector_search,
+    achievement,
 )
 
 api_router = APIRouter()
@@ -30,4 +31,5 @@ api_router.include_router(ocr.router, prefix="/ocr", tags=["OCR"])
 api_router.include_router(ai_analysis.router, prefix="/ai", tags=["AI Analysis"])
 api_router.include_router(reviews.router, prefix="/reviews", tags=["Reviews"])
 api_router.include_router(vector_search.router, prefix="/vector-search", tags=["Vector Search"])
+api_router.include_router(achievement.router, prefix="/achievements", tags=["Achievements"])
 
