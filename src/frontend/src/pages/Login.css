@@ -1,14 +1,24 @@
+/* ==================== 容器布局 ==================== */
 .login-container {
   min-height: 100vh;
   display: flex;
+  overflow: hidden;
+  background: #0a0e27;
+}
+
+/* ==================== 左侧展示区 ==================== */
+.login-showcase {
+  flex: 1;
+  position: relative;
+  display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  padding: 60px;
   overflow: hidden;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.login-background {
+.showcase-background {
   position: absolute;
   top: 0;
   left: 0;
@@ -20,37 +30,37 @@
 .gradient-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.6;
-  animation: float 20s ease-in-out infinite;
+  filter: blur(100px);
+  opacity: 0.5;
+  animation: float 25s ease-in-out infinite;
 }
 
 .orb-1 {
-  width: 500px;
-  height: 500px;
+  width: 600px;
+  height: 600px;
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  top: -10%;
-  left: -10%;
+  top: -15%;
+  left: -15%;
   animation-delay: 0s;
 }
 
 .orb-2 {
-  width: 400px;
-  height: 400px;
+  width: 500px;
+  height: 500px;
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  bottom: -10%;
-  right: -10%;
-  animation-delay: 7s;
+  bottom: -15%;
+  right: -15%;
+  animation-delay: 8s;
 }
 
 .orb-3 {
-  width: 350px;
-  height: 350px;
+  width: 450px;
+  height: 450px;
   background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  animation-delay: 14s;
+  animation-delay: 16s;
 }
 
 @keyframes float {
@@ -58,29 +68,89 @@
     transform: translate(0, 0) scale(1);
   }
   33% {
-    transform: translate(30px, -30px) scale(1.1);
+    transform: translate(40px, -40px) scale(1.15);
   }
   66% {
-    transform: translate(-20px, 20px) scale(0.9);
+    transform: translate(-30px, 30px) scale(0.85);
   }
 }
 
-.login-card {
-  width: 450px;
-  padding: 40px;
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.95);
+.showcase-content {
   position: relative;
   z-index: 1;
-  animation: slideUp 0.6s ease-out;
+  max-width: 600px;
+  width: 100%;
+  animation: fadeInLeft 0.8s ease-out;
 }
 
-@keyframes slideUp {
+@keyframes fadeInLeft {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 品牌区域 */
+.brand-section {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.brand-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.brand-title {
+  color: white !important;
+  font-size: 48px !important;
+  font-weight: 800 !important;
+  margin-bottom: 8px !important;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  letter-spacing: -1px;
+}
+
+.brand-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 16px !important;
+  font-weight: 300;
+  letter-spacing: 2px;
+}
+
+/* 概念可视化区域 */
+.concept-visualization {
+  margin-bottom: 30px;
+}
+
+/* 知识图谱演示 */
+.knowledge-graph-demo {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 20px;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -88,24 +158,198 @@
   }
 }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 32px;
+.graph-svg {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.15));
 }
 
-.login-title {
-  margin-bottom: 8px !important;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 700;
-  font-size: 36px;
+/* 连接线动画 */
+.connection-line {
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 2;
+  animation: dashFlow 3s linear infinite;
 }
 
-.login-subtitle {
-  color: #666;
+.connection-weak {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 1.5;
+}
+
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+/* 节点样式 */
+.node {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.node-center {
+  fill: #faad14;
+  filter: drop-shadow(0 0 10px rgba(250, 173, 20, 0.6));
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.node-mastered {
+  fill: #52c41a;
+  filter: drop-shadow(0 0 8px rgba(82, 196, 26, 0.5));
+  animation: nodeFloat 3s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.node-learning {
+  fill: #1890ff;
+  filter: drop-shadow(0 0 8px rgba(24, 144, 255, 0.5));
+  animation: nodeFloat 3s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.node-review {
+  fill: #ff7875;
+  filter: drop-shadow(0 0 8px rgba(255, 120, 117, 0.5));
+  animation: nodeFloat 3s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.node-new {
+  fill: #d9d9d9;
+  filter: drop-shadow(0 0 8px rgba(217, 217, 217, 0.5));
+  animation: nodeFloat 3s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+@keyframes nodeFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.node:hover {
+  transform: scale(1.1);
+}
+
+.node-text {
+  fill: white;
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.node-text-center {
   font-size: 14px;
+}
+
+/* 核心亮点 - 紧凑横向布局 */
+.highlights-compact {
+  display: flex;
+  justify-content: space-around;
+  gap: 16px;
+  animation: fadeInUp 1s ease-out;
+}
+
+.highlight-compact-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  padding: 16px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.6s ease-out backwards;
+  flex: 1;
+}
+
+.highlight-compact-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-5px);
+}
+
+.highlight-compact-icon {
+  font-size: 32px;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.highlight-compact-item:nth-child(1) .highlight-compact-icon { animation-delay: 0s; }
+.highlight-compact-item:nth-child(2) .highlight-compact-icon { animation-delay: 0.2s; }
+.highlight-compact-item:nth-child(3) .highlight-compact-icon { animation-delay: 0.4s; }
+
+.highlight-compact-text {
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-align: center;
+}
+
+.showcase-footer {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.footer-text {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 13px !important;
+}
+
+/* ==================== 右侧表单区 ==================== */
+.login-form-section {
+  width: 480px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 50px;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
+  animation: fadeInRight 0.8s ease-out;
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.form-container {
+  width: 100%;
+  max-width: 380px;
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.form-title {
+  color: #1a1a1a !important;
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}
+
+.form-subtitle {
+  color: #666 !important;
+  font-size: 14px !important;
+  line-height: 1.6;
+}
+
+/* 标签页样式 */
+.login-tabs {
+  margin-bottom: 32px;
 }
 
 .login-tabs .ant-tabs-nav {
@@ -115,48 +359,162 @@
 .login-tabs .ant-tabs-tab {
   font-size: 16px;
   font-weight: 500;
+  padding: 12px 24px;
 }
 
-.login-button {
-  height: 48px;
+.login-tabs .ant-tabs-ink-bar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 3px;
+}
+
+/* 表单样式 */
+.login-form {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.form-input {
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 2px solid #e8e8e8;
+  transition: all 0.3s ease;
+}
+
+.form-input:hover {
+  border-color: #d0d0d0;
+}
+
+.form-input:focus,
+.ant-input-affix-wrapper-focused.form-input {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-icon {
+  color: #999;
+  font-size: 16px;
+}
+
+.submit-button {
+  height: 50px;
   font-size: 16px;
   font-weight: 600;
   border-radius: 12px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
-  margin-top: 8px;
+  margin-top: 12px;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.login-button:hover {
+.submit-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
 }
 
-.login-button:active {
+.submit-button:active {
   transform: translateY(0);
 }
 
-.ant-input-affix-wrapper,
-.ant-input {
-  border-radius: 10px;
-  padding: 12px 16px;
+/* ==================== 响应式设计 ==================== */
+@media (max-width: 1024px) {
+  .login-showcase {
+    padding: 40px;
+  }
+
+  .brand-title {
+    font-size: 48px !important;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .login-form-section {
+    width: 420px;
+    padding: 40px 30px;
+  }
 }
 
-.ant-input-affix-wrapper:focus,
-.ant-input-affix-wrapper-focused {
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
-}
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+  }
 
-@media (max-width: 576px) {
-  .login-card {
-    width: 90%;
-    padding: 24px;
+  .login-showcase {
+    min-height: 40vh;
+    padding: 30px 20px;
+  }
+
+  .brand-section {
+    margin-bottom: 30px;
+  }
+
+  .brand-icon {
+    font-size: 60px;
+  }
+
+  .brand-title {
+    font-size: 36px !important;
+  }
+
+  .brand-subtitle {
+    font-size: 16px !important;
+  }
+
+  .concept-visualization {
+    margin-bottom: 20px;
   }
   
-  .login-title {
-    font-size: 28px;
+  .knowledge-graph-demo {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+  
+  .highlights-compact {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .login-form-section {
+    width: 100%;
+    min-height: 60vh;
+    padding: 30px 20px;
+  }
+
+  .form-container {
+    max-width: 100%;
+  }
+
+  .form-title {
+    font-size: 28px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-icon {
+    font-size: 50px;
+  }
+
+  .brand-title {
+    font-size: 32px !important;
+  }
+
+  .form-title {
+    font-size: 24px !important;
+  }
+
+  .submit-button {
+    height: 46px;
   }
 }
 

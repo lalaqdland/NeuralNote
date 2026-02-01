@@ -2,17 +2,7 @@ import apiClient from './api';
 import { PaginatedResponse } from './knowledgeGraph';
 
 // 类型定义
-export enum NodeType {
-  CONCEPT = 'CONCEPT',
-  QUESTION = 'QUESTION',
-}
-
-export enum MasteryLevel {
-  NOT_STARTED = 'NOT_STARTED',
-  LEARNING = 'LEARNING',
-  REVIEWING = 'REVIEWING',
-  MASTERED = 'MASTERED',
-}
+export type NodeType = 'CONCEPT' | 'QUESTION' | 'NOTE' | 'RESOURCE';
 
 export interface MemoryNode {
   id: number;
@@ -20,7 +10,7 @@ export interface MemoryNode {
   node_type: NodeType;
   title: string;
   content_data: any;
-  mastery_level: MasteryLevel;
+  mastery_level: number; // 0-5
   tags?: string[];
   position_x?: number;
   position_y?: number;
@@ -28,6 +18,7 @@ export interface MemoryNode {
   updated_at: string;
   last_reviewed_at?: string;
   next_review_at?: string;
+  vector_embedding?: number[];
 }
 
 export interface CreateNodeRequest {
@@ -35,6 +26,7 @@ export interface CreateNodeRequest {
   node_type: NodeType;
   title: string;
   content_data: any;
+  mastery_level?: number;
   tags?: string[];
   position_x?: number;
   position_y?: number;
@@ -43,7 +35,7 @@ export interface CreateNodeRequest {
 export interface UpdateNodeRequest {
   title?: string;
   content_data?: any;
-  mastery_level?: MasteryLevel;
+  mastery_level?: number;
   tags?: string[];
   position_x?: number;
   position_y?: number;

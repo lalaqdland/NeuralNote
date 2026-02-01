@@ -8,6 +8,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 // 懒加载页面组件
 const Home = lazy(() => import('../pages/Home'));
 const KnowledgeGraph = lazy(() => import('../pages/KnowledgeGraph'));
+const GraphDetail = lazy(() => import('../pages/GraphDetail'));
 const Review = lazy(() => import('../pages/Review'));
 const Profile = lazy(() => import('../pages/Profile'));
 
@@ -51,7 +52,7 @@ export const router = createBrowserRouter([
         path: 'graph/:id',
         element: (
           <Suspense fallback={<LoadingFallback />}>
-            <KnowledgeGraph />
+            <GraphDetail />
           </Suspense>
         ),
       },

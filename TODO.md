@@ -51,7 +51,7 @@ MVP阶段进度: ████████████░░░░░░░░░
   - [x] ~~安装状态管理 (Redux Toolkit)~~ (已安装 @reduxjs/toolkit, react-redux)
   - [x] ~~配置路由 (React Router)~~ (已配置 v6路由)
   - [x] ~~安装 UI 组件库~~ (已安装 Ant Design 5.13)
-  - [x] ~~前端服务启动成功~~ (http://localhost:3000/)
+  - [x] ~~前端服务启动成功~~ (http://localhost:3001/)
   
   > 📓 **记得更新 DevLog**：记录前端框架选择和配置的决策 ✅ 已更新
 
