@@ -23,7 +23,7 @@ FROM python:3.11-slim
 # 设置环境变量
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PATH=/root/.local/bin:$PATH
+    PATH=/home/neuralnote/.local/bin:$PATH
 
 # 安装运行时依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -36,17 +36,17 @@ RUN useradd -m -u 1000 neuralnote && \
     mkdir -p /app /app/uploads && \
     chown -R neuralnote:neuralnote /app
 
+# 切换到非 root 用户
+USER neuralnote
+
 # 设置工作目录
 WORKDIR /app
 
-# 从构建阶段复制依赖
-COPY --from=builder /root/.local /root/.local
+# 从构建阶段复制依赖（复制到 neuralnote 用户目录）
+COPY --from=builder --chown=neuralnote:neuralnote /root/.local /home/neuralnote/.local
 
-# 复制应用代码
-COPY src/backend/ .
-
-# 切换到非 root 用户
-USER neuralnote
+# 复制应用代码（从项目根目录）
+COPY --chown=neuralnote:neuralnote src/backend/ .
 
 # 暴露端口
 EXPOSE 8000

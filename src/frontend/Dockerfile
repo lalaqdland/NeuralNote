@@ -19,6 +19,9 @@ RUN npm run build
 # ==================== 运行阶段 ====================
 FROM nginx:1.25-alpine
 
+# 安装 curl 用于健康检查
+RUN apk add --no-cache curl
+
 # 复制自定义 Nginx 配置
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
@@ -42,7 +45,7 @@ EXPOSE 80
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
+    CMD curl -f http://localhost/ || exit 1
 
 # 启动 Nginx
 CMD ["nginx", "-g", "daemon off;"]

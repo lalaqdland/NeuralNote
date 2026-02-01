@@ -36,7 +36,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 };
 
 class NotificationService {
-  private checkTimer: NodeJS.Timeout | null = null;
+  private checkTimer: number | null = null;
   private settings: NotificationSettings;
   private records: NotificationRecord[] = [];
 

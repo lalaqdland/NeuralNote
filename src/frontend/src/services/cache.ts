@@ -73,7 +73,7 @@ class CacheService {
   private saveToMemory<T>(key: string, data: T, expiresIn: number): void {
     // 如果超过最大缓存数，删除最旧的
     if (this.memoryCache.size >= this.MAX_MEMORY_CACHE_SIZE) {
-      const firstKey = this.memoryCache.keys().next().value;
+      const firstKey = this.memoryCache.keys().next().value as string;
       this.memoryCache.delete(firstKey);
     }
 

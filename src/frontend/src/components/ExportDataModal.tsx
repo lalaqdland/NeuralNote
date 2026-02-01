@@ -61,7 +61,7 @@ const ExportDataModal: React.FC<ExportDataModalProps> = ({ visible, graphId, gra
         const relations = [];
         for (const node of nodes) {
           try {
-            const nodeRelations = await memoryNodeService.getNodeRelations(node.id);
+            const nodeRelations = await memoryNodeService.getRelations(node.id);
             relations.push(...nodeRelations);
           } catch (error) {
             console.warn(`获取节点 ${node.id} 的关联关系失败:`, error);

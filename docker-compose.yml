@@ -47,6 +47,8 @@ services:
     build:
       context: .
       dockerfile: src/backend/Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     container_name: neuralnote-backend
     env_file:
       - src/backend/.env

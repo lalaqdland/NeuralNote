@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import React from 'react';
 
 /**
  * 防抖函数
@@ -8,7 +9,7 @@ export function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: number | null = null;
 
   return function (this: any, ...args: Parameters<T>) {
     const context = this;
@@ -19,7 +20,7 @@ export function debounce<T extends (...args: any[]) => any>(
 
     timeout = setTimeout(() => {
       func.apply(context, args);
-    }, wait);
+    }, wait) as any;
   };
 }
 
@@ -31,7 +32,7 @@ export function throttle<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null;
+  let timeout: number | null = null;
   let previous = 0;
 
   return function (this: any, ...args: Parameters<T>) {
@@ -54,7 +55,7 @@ export function throttle<T extends (...args: any[]) => any>(
         previous = Date.now();
         timeout = null;
         func.apply(context, args);
-      }, remaining);
+      }, remaining) as any;
     }
   };
 }
@@ -86,7 +87,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   const callbackRef = useRef(callback);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   // 更新回调引用
   useEffect(() => {
@@ -110,7 +111,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
 
       timeoutRef.current = setTimeout(() => {
         callbackRef.current(...args);
-      }, delay);
+      }, delay) as any;
     },
     [delay]
   );
@@ -124,7 +125,7 @@ export function useThrottledCallback<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   const callbackRef = useRef(callback);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<number | null>(null);
   const previousRef = useRef<number>(0);
 
   // 更新回调引用
@@ -163,7 +164,7 @@ export function useThrottledCallback<T extends (...args: any[]) => any>(
           previousRef.current = Date.now();
           timeoutRef.current = null;
           callbackRef.current(...args);
-        }, remaining);
+        }, remaining) as any;
       }
     },
     [delay]
@@ -176,7 +177,7 @@ export function useThrottledCallback<T extends (...args: any[]) => any>(
 export function useThrottle<T>(value: T, delay: number): T {
   const [throttledValue, setThrottledValue] = React.useState<T>(value);
   const previousRef = useRef<number>(0);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const now = Date.now();
@@ -201,7 +202,7 @@ export function useThrottle<T>(value: T, delay: number): T {
         previousRef.current = Date.now();
         timeoutRef.current = null;
         setThrottledValue(value);
-      }, remaining);
+      }, remaining) as any;
     }
 
     return () => {
@@ -214,6 +215,4 @@ export function useThrottle<T>(value: T, delay: number): T {
   return throttledValue;
 }
 
-// 导入 React（用于 useState）
-import React from 'react';
 

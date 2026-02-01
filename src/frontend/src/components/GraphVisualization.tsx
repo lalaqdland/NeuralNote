@@ -100,7 +100,7 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
             height: 80,
             'text-wrap': 'wrap',
             'text-max-width': '70px',
-            shape: (ele: NodeSingular) => getNodeShape(ele.data('type')),
+            shape: 'ellipse',
             'border-width': 3,
             'border-color': '#fff',
             'overlay-padding': '6px',

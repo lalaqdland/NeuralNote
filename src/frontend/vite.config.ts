@@ -38,15 +38,8 @@ export default defineConfig({
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
     },
-    // 压缩配置
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        // 生产环境移除 console
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    // 使用 esbuild 压缩（更快，不需要额外依赖）
+    minify: 'esbuild',
     // chunk 大小警告限制
     chunkSizeWarningLimit: 1000,
   },

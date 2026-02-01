@@ -81,7 +81,7 @@ const GraphDetailPage: React.FC = () => {
   const loadGraphDetail = async () => {
     setLoading(true);
     try {
-      const data = await knowledgeGraphService.getGraphDetail(graphId);
+      const data = await knowledgeGraphService.getGraph(graphId);
       setGraph(data);
     } catch (error) {
       message.error('加载图谱详情失败');

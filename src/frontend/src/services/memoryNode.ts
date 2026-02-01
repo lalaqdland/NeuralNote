@@ -18,6 +18,7 @@ export interface MemoryNode {
   updated_at: string;
   last_reviewed_at?: string;
   next_review_at?: string;
+  review_count?: number;
   vector_embedding?: number[];
 }
 

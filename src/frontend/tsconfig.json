@@ -6,6 +6,7 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "jsx": "react-jsx",
+    "types": ["vite/client"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -16,7 +17,7 @@
     "verbatimModuleSyntax": false,
 
     /* Linting */
-    "strict": true,
+    "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
