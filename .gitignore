@@ -124,3 +124,11 @@ sangfor/
 postgres_data/
 redis_data/
 pgadmin_data/
+
+# User uploads and data
+src/backend/uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.pdf
