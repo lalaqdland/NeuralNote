@@ -180,12 +180,15 @@ const Login: React.FC = () => {
                     className="login-form"
                   >
                     <Form.Item
-                      name="username"
-                      rules={[{ required: true, message: '请输入用户名' }]}
+                      name="email"
+                      rules={[
+                        { required: true, message: '请输入邮箱' },
+                        { type: 'email', message: '请输入有效的邮箱地址' },
+                      ]}
                     >
                       <Input
-                        prefix={<UserOutlined className="input-icon" />}
-                        placeholder="用户名"
+                        prefix={<MailOutlined className="input-icon" />}
+                        placeholder="邮箱"
                         className="form-input"
                       />
                     </Form.Item>

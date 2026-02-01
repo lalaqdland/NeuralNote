@@ -2,7 +2,7 @@ import apiClient from './api';
 
 // 类型定义
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -12,41 +12,55 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
+export interface UserInfo {
+  id: string;
+  email: string;
+  username: string;
+  avatar_url?: string;
+  phone?: string;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+  last_login_at?: string;
+}
+
 export interface LoginResponse {
   access_token: string;
   token_type: string;
   user: UserInfo;
 }
 
-export interface UserInfo {
-  id: number;
-  email: string;
-  username: string;
-  avatar_url?: string;
-  created_at: string;
-}
-
 // 认证服务
 export const authService = {
   // 用户登录
   async login(data: LoginRequest): Promise<LoginResponse> {
-    const formData = new URLSearchParams();
-    formData.append('username', data.username);
-    formData.append('password', data.password);
-
-    const response = await apiClient.post<LoginResponse>('/api/v1/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
+    // 发送登录请求
+    const tokenResponse = await apiClient.post<TokenResponse>('/api/v1/auth/login', data);
     
-    // 保存 Token 和用户信息
-    if (response.data.access_token) {
-      localStorage.setItem('access_token', response.data.access_token);
-      localStorage.setItem('user_info', JSON.stringify(response.data.user));
+    // 保存 Token
+    if (tokenResponse.data.access_token) {
+      localStorage.setItem('access_token', tokenResponse.data.access_token);
+      localStorage.setItem('refresh_token', tokenResponse.data.refresh_token);
+      
+      // 获取用户信息
+      const userResponse = await apiClient.get<UserInfo>('/api/v1/auth/me');
+      localStorage.setItem('user_info', JSON.stringify(userResponse.data));
+      
+      return {
+        access_token: tokenResponse.data.access_token,
+        token_type: tokenResponse.data.token_type,
+        user: userResponse.data,
+      };
     }
     
-    return response.data;
+    throw new Error('登录失败');
   },
 
   // 用户注册
@@ -58,6 +72,7 @@ export const authService = {
   // 退出登录
   logout(): void {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user_info');
   },
 
