@@ -126,9 +126,9 @@ redis_data/
 pgadmin_data/
 
 # User uploads and data
-src/backend/uploads/
-*.jpg
-*.jpeg
-*.png
-*.gif
-*.pdf
+# 忽略上传的文件，但保留目录结构
+src/backend/uploads/*
+!src/backend/uploads/README.md
+!src/backend/uploads/images/
+src/backend/uploads/images/*
+!src/backend/uploads/images/.gitkeep
