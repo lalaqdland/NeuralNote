@@ -29,6 +29,7 @@ import {
   EditOutlined,
   DeleteOutlined,
   MoreOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { knowledgeGraphService, KnowledgeGraph } from '../services/knowledgeGraph';
@@ -38,6 +39,7 @@ import GraphVisualization from '../components/GraphVisualization';
 import GraphVisualization3D from '../components/GraphVisualization3D';
 import NodeRelationsManager from '../components/NodeRelationsManager';
 import StatisticsCharts from '../components/StatisticsCharts';
+import ExportDataModal from '../components/ExportDataModal';
 import dayjs from 'dayjs';
 import type { MenuProps } from 'antd';
 
@@ -57,6 +59,7 @@ const GraphDetailPage: React.FC = () => {
   const [analysisModalVisible, setAnalysisModalVisible] = useState(false);
   const [nodeModalVisible, setNodeModalVisible] = useState(false);
   const [relationsModalVisible, setRelationsModalVisible] = useState(false);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
   const [editingNode, setEditingNode] = useState<MemoryNode | null>(null);
   const [selectedNode, setSelectedNode] = useState<MemoryNode | null>(null);
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
@@ -292,6 +295,13 @@ const GraphDetailPage: React.FC = () => {
               </Button>
               <Button icon={<PlusOutlined />} onClick={handleCreateNode} size="large">
                 创建节点
+              </Button>
+              <Button
+                icon={<DownloadOutlined />}
+                onClick={() => setExportModalVisible(true)}
+                size="large"
+              >
+                导出数据
               </Button>
             </Space>
           </div>
@@ -549,6 +559,14 @@ const GraphDetailPage: React.FC = () => {
           }}
         />
       )}
+
+      {/* 数据导出模态框 */}
+      <ExportDataModal
+        visible={exportModalVisible}
+        graphId={graphId}
+        graphName={graph.name}
+        onClose={() => setExportModalVisible(false)}
+      />
     </div>
   );
 };

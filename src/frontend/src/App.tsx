@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Typography, Space, Button } from 'antd';
+import { Layout, Menu, Avatar, Dropdown, Typography, Space, Button, Badge } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   HomeOutlined,
@@ -9,11 +9,15 @@ import {
   LogoutOutlined,
   SettingOutlined,
   SearchOutlined,
+  BellOutlined,
+  TrophyOutlined,
 } from '@ant-design/icons';
 import { authService } from './services/auth';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { setUser, clearUser } from './store/authSlice';
 import VectorSearchModal from './components/VectorSearchModal';
+import NotificationSettingsModal from './components/NotificationSettings';
+import { notificationService } from './services/notification';
 import type { MenuProps } from 'antd';
 
 const { Header, Content, Footer } = Layout;
@@ -25,6 +29,8 @@ const App: React.FC = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
+  const [notificationModalVisible, setNotificationModalVisible] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   useEffect(() => {
     // 初始化时从 localStorage 加载用户信息
@@ -32,7 +38,20 @@ const App: React.FC = () => {
     if (currentUser) {
       dispatch(setUser(currentUser));
     }
+
+    // 更新未读通知数量
+    updateUnreadCount();
+
+    // 每分钟更新一次未读通知数量
+    const timer = setInterval(updateUnreadCount, 60000);
+    return () => clearInterval(timer);
   }, [dispatch]);
+
+  const updateUnreadCount = () => {
+    const records = notificationService.getRecords();
+    const unread = records.filter((r) => !r.clicked).length;
+    setUnreadNotifications(unread);
+  };
 
   const handleLogout = () => {
     authService.logout();
@@ -56,6 +75,11 @@ const App: React.FC = () => {
       icon: <ReadOutlined />,
       label: '复习',
     },
+    {
+      key: '/achievements',
+      icon: <TrophyOutlined />,
+      label: '成就',
+    },
   ];
 
   const userMenuItems: MenuProps['items'] = [
@@ -64,6 +88,15 @@ const App: React.FC = () => {
       icon: <UserOutlined />,
       label: '个人中心',
       onClick: () => navigate('/profile'),
+    },
+    {
+      key: 'notifications',
+      icon: <BellOutlined />,
+      label: '通知设置',
+      onClick: () => {
+        setNotificationModalVisible(true);
+        updateUnreadCount();
+      },
     },
     {
       key: 'settings',
@@ -130,6 +163,17 @@ const App: React.FC = () => {
           >
             搜索
           </Button>
+          <Badge count={unreadNotifications} offset={[-5, 5]}>
+            <Button
+              type="text"
+              icon={<BellOutlined />}
+              onClick={() => {
+                setNotificationModalVisible(true);
+                updateUnreadCount();
+              }}
+              style={{ color: 'white' }}
+            />
+          </Badge>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Space style={{ cursor: 'pointer' }}>
               <Avatar
@@ -157,6 +201,15 @@ const App: React.FC = () => {
       <VectorSearchModal
         visible={searchModalVisible}
         onClose={() => setSearchModalVisible(false)}
+      />
+
+      {/* 通知设置模态框 */}
+      <NotificationSettingsModal
+        visible={notificationModalVisible}
+        onClose={() => {
+          setNotificationModalVisible(false);
+          updateUnreadCount();
+        }}
       />
     </Layout>
   );

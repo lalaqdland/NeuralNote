@@ -25,15 +25,17 @@ import {
   TrophyOutlined,
   HomeOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { knowledgeGraphService, KnowledgeGraph } from '../services/knowledgeGraph';
 import { reviewService, ReviewMode, ReviewNode, ReviewStats } from '../services/review';
+import { notificationService } from '../services/notification';
 import ReviewCard from '../components/ReviewCard';
 
 const { Title, Text, Paragraph } = Typography;
 
 const Review: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [reviewMode, setReviewMode] = useState<ReviewMode>('spaced');
   const [selectedGraph, setSelectedGraph] = useState<number | null>(null);
   const [graphs, setGraphs] = useState<KnowledgeGraph[]>([]);
@@ -52,8 +54,29 @@ const Review: React.FC = () => {
   useEffect(() => {
     if (selectedGraph) {
       loadStats();
+      // 启动定时检查通知
+      const settings = notificationService.getSettings();
+      if (settings.enabled) {
+        notificationService.startPeriodicCheck(selectedGraph);
+      }
     }
+
+    // 组件卸载时停止定时检查
+    return () => {
+      notificationService.stopPeriodicCheck();
+    };
   }, [selectedGraph]);
+
+  useEffect(() => {
+    // 从 URL 参数中获取图谱 ID（从通知点击进入）
+    const graphIdFromUrl = searchParams.get('graph');
+    if (graphIdFromUrl && graphs.length > 0) {
+      const graphId = parseInt(graphIdFromUrl, 10);
+      if (!isNaN(graphId)) {
+        setSelectedGraph(graphId);
+      }
+    }
+  }, [searchParams, graphs]);
 
   const loadGraphs = async () => {
     try {

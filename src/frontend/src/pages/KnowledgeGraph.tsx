@@ -24,6 +24,7 @@ import {
   EyeOutlined,
   MoreOutlined,
   BookOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -34,6 +35,7 @@ import {
 } from '../services/knowledgeGraph';
 import { useAppDispatch } from '../store/hooks';
 import { setGraphs, addGraph, updateGraph as updateGraphAction, removeGraph } from '../store/graphSlice';
+import ExportDataModal from '../components/ExportDataModal';
 import dayjs from 'dayjs';
 import type { MenuProps } from 'antd';
 
@@ -49,6 +51,8 @@ const KnowledgeGraphPage: React.FC = () => {
   const [graphs, setGraphsList] = useState<KnowledgeGraph[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingGraph, setEditingGraph] = useState<KnowledgeGraph | null>(null);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [exportingGraph, setExportingGraph] = useState<KnowledgeGraph | null>(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -123,6 +127,15 @@ const KnowledgeGraphPage: React.FC = () => {
       icon: <EditOutlined />,
       label: '编辑',
       onClick: () => handleEdit(graph),
+    },
+    {
+      key: 'export',
+      icon: <DownloadOutlined />,
+      label: '导出数据',
+      onClick: () => {
+        setExportingGraph(graph);
+        setExportModalVisible(true);
+      },
     },
     {
       type: 'divider',
@@ -300,6 +313,19 @@ const KnowledgeGraphPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 数据导出模态框 */}
+      {exportingGraph && (
+        <ExportDataModal
+          visible={exportModalVisible}
+          graphId={exportingGraph.id}
+          graphName={exportingGraph.name}
+          onClose={() => {
+            setExportModalVisible(false);
+            setExportingGraph(null);
+          }}
+        />
+      )}
     </div>
   );
 };

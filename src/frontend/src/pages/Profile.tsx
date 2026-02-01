@@ -205,7 +205,19 @@ const Profile: React.FC = () => {
           </Card>
 
           {/* 成就卡片 */}
-          <Card title="学习成就" style={{ marginTop: 16 }}>
+          <Card 
+            title="学习成就" 
+            style={{ marginTop: 16 }}
+            extra={
+              <Button 
+                type="link" 
+                icon={<TrophyOutlined />}
+                onClick={() => window.location.href = '/achievements'}
+              >
+                查看全部
+              </Button>
+            }
+          >
             {loading ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <Spin />

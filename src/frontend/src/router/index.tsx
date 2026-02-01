@@ -11,6 +11,7 @@ const KnowledgeGraph = lazy(() => import('../pages/KnowledgeGraph'));
 const GraphDetail = lazy(() => import('../pages/GraphDetail'));
 const Review = lazy(() => import('../pages/Review'));
 const Profile = lazy(() => import('../pages/Profile'));
+const Achievements = lazy(() => import('../pages/Achievements'));
 
 // 加载中组件
 const LoadingFallback = () => (
@@ -69,6 +70,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<LoadingFallback />}>
             <Profile />
+          </Suspense>
+        ),
+      },
+      {
+        path: 'achievements',
+        element: (
+          <Suspense fallback={<LoadingFallback />}>
+            <Achievements />
           </Suspense>
         ),
       },
