@@ -18,8 +18,10 @@ import { useAppDispatch, useAppSelector } from './store/hooks';
 import { setUser, clearUser } from './store/authSlice';
 import VectorSearchModal from './components/VectorSearchModal';
 import NotificationSettingsModal from './components/NotificationSettings';
+import ThemeToggle from './components/ThemeToggle';
 import { notificationService } from './services/notification';
 import { useResponsive } from './hooks/useResponsive';
+import { useTheme } from './contexts/ThemeContext';
 import type { MenuProps } from 'antd';
 
 const { Header, Content, Footer } = Layout;
@@ -38,6 +40,9 @@ const App: React.FC = () => {
   // 响应式布局
   const { isMobile, isTablet } = useResponsive();
   const isSmallScreen = isMobile || isTablet;
+  
+  // 主题
+  const { theme } = useTheme();
 
   useEffect(() => {
     // 初始化时从 localStorage 加载用户信息
@@ -129,8 +134,8 @@ const App: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: isMobile ? '0 16px' : '0 24px',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          background: theme.colors.gradient,
+          boxShadow: `0 2px 8px ${theme.colors.shadow}`,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '16px' : '32px' }}>
@@ -175,6 +180,9 @@ const App: React.FC = () => {
               style={{ color: 'white' }}
             />
           )}
+          
+          {/* 主题切换按钮 */}
+          <ThemeToggle style={{ color: 'white' }} size={isMobile ? 'small' : 'middle'} />
           
           <Button
             type="text"
@@ -230,13 +238,18 @@ const App: React.FC = () => {
         />
       </Drawer>
 
-      <Content style={{ padding: isMobile ? '16px' : '24px', background: '#f5f7fa' }}>
+      <Content style={{ padding: isMobile ? '16px' : '24px', background: theme.colors.background }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
           <Outlet />
         </div>
       </Content>
 
-      <Footer style={{ textAlign: 'center', background: '#fff', borderTop: '1px solid #f0f0f0', padding: isMobile ? '12px' : '24px' }}>
+      <Footer style={{ 
+        textAlign: 'center', 
+        background: theme.colors.surface, 
+        borderTop: `1px solid ${theme.colors.border}`, 
+        padding: isMobile ? '12px' : '24px' 
+      }}>
         <Text type="secondary" style={{ fontSize: isMobile ? '12px' : '14px' }}>
           NeuralNote ©2026 - 智能学习，知识图谱化管理
         </Text>

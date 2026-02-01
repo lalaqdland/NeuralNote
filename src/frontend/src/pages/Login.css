@@ -4,6 +4,11 @@
   display: flex;
   overflow: hidden;
   background: #0a0e27;
+  transition: background 0.3s ease;
+}
+
+.login-container[data-theme='dark'] {
+  background: #0f0f0f;
 }
 
 /* ==================== 左侧展示区 ==================== */
@@ -16,6 +21,7 @@
   padding: 60px;
   overflow: hidden;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: background 0.3s ease;
 }
 
 .showcase-background {
@@ -311,6 +317,12 @@
   padding: 60px 50px;
   box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
   animation: fadeInRight 0.8s ease-out;
+  position: relative;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+[data-theme='dark'] .login-form-section {
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
 }
 
 @keyframes fadeInRight {
@@ -339,12 +351,14 @@
   font-size: 32px !important;
   font-weight: 700 !important;
   margin-bottom: 8px !important;
+  transition: color 0.3s ease;
 }
 
 .form-subtitle {
   color: #666 !important;
   font-size: 14px !important;
   line-height: 1.6;
+  transition: color 0.3s ease;
 }
 
 /* 标签页样式 */

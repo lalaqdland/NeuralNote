@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import { authService, LoginRequest, RegisterRequest } from '../services/auth';
 import { useAppDispatch } from '../store/hooks';
 import { setUser } from '../store/authSlice';
+import ThemeToggle from '../components/ThemeToggle';
+import { useTheme } from '../contexts/ThemeContext';
 import './Login.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -22,6 +24,7 @@ const Login: React.FC = () => {
   const [activeTab, setActiveTab] = useState('login');
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { theme, themeMode } = useTheme();
 
   // 处理登录
   const handleLogin = async (values: LoginRequest) => {
@@ -71,9 +74,9 @@ const Login: React.FC = () => {
   ];
 
   return (
-    <div className="login-container">
+    <div className="login-container" data-theme={themeMode}>
       {/* 左侧：产品展示区 */}
-      <div className="login-showcase">
+      <div className="login-showcase" style={{ background: theme.colors.gradient }}>
         <div className="showcase-background">
           <div className="gradient-orb orb-1"></div>
           <div className="gradient-orb orb-2"></div>
@@ -152,13 +155,18 @@ const Login: React.FC = () => {
       </div>
 
       {/* 右侧：登录/注册表单 */}
-      <div className="login-form-section">
+      <div className="login-form-section" style={{ background: theme.colors.surface }}>
+        {/* 主题切换按钮 */}
+        <div style={{ position: 'absolute', top: 20, right: 20 }}>
+          <ThemeToggle />
+        </div>
+        
         <div className="form-container">
           <div className="form-header">
-            <Title level={2} className="form-title">
+            <Title level={2} className="form-title" style={{ color: theme.colors.text }}>
               {activeTab === 'login' ? '欢迎回来' : '开始使用'}
             </Title>
-            <Text className="form-subtitle">
+            <Text className="form-subtitle" style={{ color: theme.colors.textSecondary }}>
               {activeTab === 'login'
                 ? '登录您的账户，继续学习之旅'
                 : '创建账户，开启智能学习'}

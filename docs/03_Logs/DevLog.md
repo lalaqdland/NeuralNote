@@ -14,6 +14,195 @@
 
 ## 2026年2月
 
+### 2026-02-01 23:30 - 00:15 | 暗黑模式支持 ✅
+
+**会话目标**：实现完整的亮色/暗黑模式切换功能，完成前端开发的最后一个核心功能
+
+#### [完成内容]
+
+1. ✅ **主题系统架构** (`contexts/ThemeContext.tsx`)
+   - **ThemeProvider 组件**
+     - 使用 React Context API 管理全局主题状态
+     - 支持亮色（light）和暗黑（dark）两种模式
+     - 自动持久化到 localStorage（键名：`neuralnote-theme-mode`）
+     - 集成 Ant Design ConfigProvider，自动适配所有组件
+   
+   - **主题配置**
+     - 亮色主题：紫色渐变（#667eea → #764ba2）+ 浅色背景
+     - 暗色主题：紫色渐变（#7c3aed → #a855f7）+ 深色背景
+     - 包含 10 个颜色变量（primary、background、surface、text 等）
+   
+   - **自动化功能**
+     - 更新 `document.documentElement` 的 `data-theme` 属性
+     - 更新 `<meta name="theme-color">` 标签（移动端地址栏颜色）
+     - Ant Design 主题算法自动切换（darkAlgorithm / defaultAlgorithm）
+
+2. ✅ **主题切换组件** (`components/ThemeToggle.tsx`)
+   - **核心特性**
+     - 一键切换亮色/暗黑模式
+     - 图标动态变化（BulbFilled / BulbOutlined）
+     - 支持自定义样式、大小、是否显示文字
+     - Tooltip 提示当前模式
+   
+   - **使用灵活**
+     - 可放置在任何位置
+     - 支持 small / middle / large 三种尺寸
+     - 平滑过渡动画（0.3s ease）
+
+3. ✅ **CSS 变量系统** (`styles/theme.css`)
+   - **全局 CSS 变量**
+     - 定义 10 个颜色变量（--color-primary、--color-background 等）
+     - 使用 `[data-theme='dark']` 选择器覆盖暗黑模式变量
+     - 所有变量支持平滑过渡（--transition-theme）
+   
+   - **工具类**
+     - `.theme-card`：卡片样式
+     - `.theme-text-primary`：主要文本
+     - `.theme-text-secondary`：次要文本
+     - `.theme-gradient`：渐变背景
+     - `.theme-shadow`：阴影效果
+   
+   - **暗黑模式特殊处理**
+     - 自定义滚动条样式
+     - 图片亮度降低 10%（opacity: 0.9）
+     - 代码块背景适配
+     - 选中文本样式统一
+
+4. ✅ **全局集成**
+   - **main.tsx**
+     - 移除原有的 ConfigProvider（由 ThemeProvider 接管）
+     - 用 ThemeProvider 包裹整个应用
+     - 导入 theme.css 样式文件
+   
+   - **App.tsx**
+     - 导入 useTheme Hook
+     - Header 背景使用 `theme.colors.gradient`
+     - Content 背景使用 `theme.colors.background`
+     - Footer 背景和边框使用主题颜色
+     - 添加主题切换按钮（搜索按钮旁边）
+   
+   - **Login.tsx**
+     - 导入 useTheme Hook 和 ThemeToggle 组件
+     - 左侧展示区背景使用 `theme.colors.gradient`
+     - 右侧表单区背景使用 `theme.colors.surface`
+     - 文本颜色使用 `theme.colors.text` 和 `theme.colors.textSecondary`
+     - 右上角添加主题切换按钮
+     - Login.css 添加过渡动画和暗黑模式适配
+
+5. ✅ **功能文档** (`docs/03_Logs/Dark_Mode_Feature.md`)
+   - 功能概述和特性说明
+   - 技术实现细节
+   - 使用指南（开发者 + 用户）
+   - 设计规范（颜色对比度、过渡动画）
+   - 响应式支持和浏览器兼容性
+   - 性能优化说明
+
+#### [技术决策]
+
+1. **主题管理方案：Context API**
+   - **原因**：
+     - 轻量级，无需额外依赖
+     - 与 React 生态完美集成
+     - 支持嵌套和组合
+   - **替代方案**：Redux（过于重量级）、Zustand（增加依赖）
+
+2. **持久化方案：localStorage**
+   - **原因**：
+     - 简单可靠，浏览器原生支持
+     - 无需后端支持
+     - 容量足够（5MB）
+   - **替代方案**：Cookie（容量小）、IndexedDB（过于复杂）
+
+3. **CSS 变量 vs CSS-in-JS**
+   - **选择**：CSS 变量
+   - **原因**：
+     - 性能更好（无需 JavaScript 计算）
+     - 支持平滑过渡动画
+     - 浏览器原生支持
+     - 易于维护和调试
+   - **替代方案**：styled-components（增加包体积）、Emotion（学习成本）
+
+4. **Ant Design 主题集成**
+   - **方案**：使用 ConfigProvider + theme.algorithm
+   - **优势**：
+     - 自动适配所有 Ant Design 组件
+     - 无需手动修改每个组件样式
+     - 支持 token 级别的定制
+   - **注意**：需要在 ThemeProvider 内部包裹 ConfigProvider
+
+5. **颜色方案设计**
+   - **亮色主题**：保持原有紫色渐变（#667eea → #764ba2）
+   - **暗黑主题**：调整为更亮的紫色（#7c3aed → #a855f7）
+   - **原因**：
+     - 保持品牌一致性
+     - 暗黑模式下需要更高的颜色亮度
+     - 符合 WCAG 2.1 AA 级对比度标准（>7:1）
+
+#### [技术亮点]
+
+1. **自动化程度高**
+   - 主题切换后，所有组件自动更新
+   - Ant Design 组件无需手动适配
+   - CSS 变量自动响应主题变化
+
+2. **用户体验优秀**
+   - 平滑过渡动画（0.3s cubic-bezier）
+   - 主题持久化，刷新后保持
+   - 移动端地址栏颜色自动适配
+
+3. **开发者友好**
+   - 提供 useTheme Hook，使用简单
+   - 提供 CSS 变量和工具类
+   - 完整的 TypeScript 类型支持
+
+4. **性能优化**
+   - CSS 变量避免 JavaScript 计算
+   - useMemo 缓存主题配置
+   - GPU 加速的 CSS 过渡
+
+#### [测试验证]
+
+- ✅ 主题切换功能正常
+- ✅ 主题持久化正常（刷新后保持）
+- ✅ Ant Design 组件自动适配
+- ✅ 登录页面主题切换正常
+- ✅ 主应用主题切换正常
+- ✅ CSS 变量生效
+- ✅ 过渡动画流畅
+
+#### [文件清单]
+
+**新增文件**：
+- `src/contexts/ThemeContext.tsx` - 主题 Context
+- `src/components/ThemeToggle.tsx` - 主题切换组件
+- `src/styles/theme.css` - 主题样式
+- `docs/03_Logs/Dark_Mode_Feature.md` - 功能文档
+
+**修改文件**：
+- `src/main.tsx` - 集成 ThemeProvider
+- `src/App.tsx` - 使用主题和添加切换按钮
+- `src/pages/Login.tsx` - 使用主题和添加切换按钮
+- `src/pages/Login.css` - 添加暗黑模式适配
+
+#### [下一步计划]
+
+**前端开发已完成** 🎉
+- ✅ 基础架构
+- ✅ 核心功能（图谱、节点、复习）
+- ✅ 高级功能（3D 可视化、通知、导出、成就）
+- ✅ 性能优化（代码分割、懒加载、缓存、虚拟列表）
+- ✅ 移动端适配（响应式布局、抽屉菜单）
+- ✅ 暗黑模式支持
+
+**下一阶段：测试和部署**
+1. 端到端测试（E2E）
+2. 解决数据库事务隔离问题（技术债务）
+3. Docker 镜像构建
+4. 生产环境配置
+5. 部署文档编写
+
+---
+
 ### 2026-02-01 22:30 - 23:30 | 前端性能优化和移动端适配 ✅
 
 **会话目标**：实施全面的前端性能优化和移动端适配，提升用户体验

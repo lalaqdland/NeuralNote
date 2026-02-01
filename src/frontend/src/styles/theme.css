@@ -1,0 +1,174 @@
+/* 全局主题样式 */
+
+/* 根元素变量 */
+:root {
+  /* 亮色主题变量 */
+  --color-primary: #667eea;
+  --color-secondary: #764ba2;
+  --color-background: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-text: #1a1a1a;
+  --color-text-secondary: #666666;
+  --color-border: #e8e8e8;
+  --color-hover: #f0f0f0;
+  --color-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  
+  /* 过渡动画 */
+  --transition-theme: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 暗色主题变量 */
+[data-theme='dark'] {
+  --color-primary: #7c3aed;
+  --color-secondary: #a855f7;
+  --color-background: #0f0f0f;
+  --color-surface: #1a1a1a;
+  --color-text: #e5e5e5;
+  --color-text-secondary: #a3a3a3;
+  --color-border: #2a2a2a;
+  --color-hover: #262626;
+  --color-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  --color-shadow: rgba(0, 0, 0, 0.5);
+}
+
+/* 全局样式 */
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: var(--transition-theme);
+}
+
+/* 卡片样式 */
+.theme-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: var(--transition-theme);
+}
+
+.theme-card:hover {
+  background-color: var(--color-hover);
+  box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+/* 文本样式 */
+.theme-text-primary {
+  color: var(--color-text);
+  transition: var(--transition-theme);
+}
+
+.theme-text-secondary {
+  color: var(--color-text-secondary);
+  transition: var(--transition-theme);
+}
+
+/* 渐变背景 */
+.theme-gradient {
+  background: var(--color-gradient);
+  transition: var(--transition-theme);
+}
+
+/* 边框样式 */
+.theme-border {
+  border-color: var(--color-border);
+  transition: var(--transition-theme);
+}
+
+/* 阴影样式 */
+.theme-shadow {
+  box-shadow: 0 2px 8px var(--color-shadow);
+  transition: var(--transition-theme);
+}
+
+/* 悬停效果 */
+.theme-hover:hover {
+  background-color: var(--color-hover);
+  transition: var(--transition-theme);
+}
+
+/* 暗黑模式特殊样式 */
+[data-theme='dark'] {
+  /* 滚动条样式 */
+  scrollbar-color: #2a2a2a #0f0f0f;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-track {
+  background: #0f0f0f;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+
+/* 图片在暗黑模式下的亮度调整 */
+[data-theme='dark'] img {
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+[data-theme='dark'] img:hover {
+  opacity: 1;
+}
+
+/* 代码块样式 */
+[data-theme='dark'] pre,
+[data-theme='dark'] code {
+  background-color: #1a1a1a;
+  border-color: #2a2a2a;
+}
+
+/* 选中文本样式 */
+::selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+[data-theme='dark'] ::selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* 动画效果 */
+@keyframes theme-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.theme-fade-in {
+  animation: theme-fade-in 0.3s ease-out;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  :root {
+    font-size: 14px;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  [data-theme='dark'] {
+    --color-background: #ffffff;
+    --color-surface: #ffffff;
+    --color-text: #000000;
+    --color-text-secondary: #666666;
+    --color-border: #e8e8e8;
+  }
+}
+
