@@ -42,6 +42,72 @@ services:
     networks:
       - neuralnote-network
 
+  # 后端服务
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: Dockerfile
+    container_name: neuralnote-backend
+    environment:
+      # 数据库配置
+      DATABASE_URL: postgresql+asyncpg://neuralnote:neuralnote_dev_password@postgres:5432/neuralnote_dev
+      # Redis 配置
+      REDIS_URL: redis://redis:6379/0
+      # JWT 配置
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      # API 配置
+      BAIDU_OCR_API_KEY: ${BAIDU_OCR_API_KEY:-}
+      BAIDU_OCR_SECRET_KEY: ${BAIDU_OCR_SECRET_KEY:-}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # 文件存储
+      UPLOAD_DIR: /app/uploads
+      MAX_UPLOAD_SIZE: 10485760
+      # 应用配置
+      DEBUG: ${DEBUG:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - backend_uploads:/app/uploads
+      - ./src/backend:/app:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - neuralnote-network
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: neuralnote-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - neuralnote-network
+
   # pgAdmin (可选，用于数据库管理)
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -59,6 +125,8 @@ services:
     restart: unless-stopped
     networks:
       - neuralnote-network
+    profiles:
+      - dev
 
 volumes:
   postgres_data:
@@ -66,6 +134,8 @@ volumes:
   redis_data:
     driver: local
   pgadmin_data:
+    driver: local
+  backend_uploads:
     driver: local
 
 networks:
