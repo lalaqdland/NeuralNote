@@ -8,7 +8,7 @@
 
 ## 📅 最后更新时间
 
-**2026-02-02 01:30**
+**2026-02-01 22:10**
 
 ---
 
@@ -111,6 +111,12 @@ NeuralNote 是一款基于AI的智能学习管理工具，核心功能是：
   - docker-compose.yml 更新（集成前后端服务）
   - 环境变量配置（使用 src/backend/.env）
   - 本地部署指南文档（Local_Deployment_Guide.md）
+- **Docker 镜像构建和部署测试** ✅ 新增（2026-02-01 22:00-22:10）
+  - 后端镜像构建成功（694MB，python:3.11-slim）
+  - 前端镜像构建成功（83.6MB，nginx:1.25-alpine）
+  - 所有服务启动成功（5个容器全部健康）
+  - 健康检查全部通过
+  - API 可访问性验证通过
 - **已知问题：13个文件上传相关测试失败** ⚠️
   - 问题：测试 fixture 中创建的用户数据在 API 请求中不可见
   - 原因：SQLAlchemy 异步测试中的数据库事务隔离问题
@@ -161,13 +167,13 @@ NeuralNote 是一款基于AI的智能学习管理工具，核心功能是：
    - ✅ Nginx 配置（反向代理、缓存）
    - ✅ 环境变量配置
    - ✅ 本地部署文档
-2. ⏳ Docker 镜像构建和测试
-   - 构建后端镜像（docker-compose build backend）
-   - 构建前端镜像（docker-compose build frontend）
-   - 验证镜像大小和层数
-   - 启动所有服务
-   - 验证服务健康状态
-3. ⏳ 端到端功能测试
+2. ✅ Docker 镜像构建和测试（已完成）
+   - ✅ 构建后端镜像（694MB）
+   - ✅ 构建前端镜像（83.6MB）
+   - ✅ 验证镜像大小和层数
+   - ✅ 启动所有服务（5个容器）
+   - ✅ 验证服务健康状态（全部通过）
+3. ⏳ 端到端功能测试（下一步）🎯
    - 用户注册和登录
    - 文件上传和 OCR 识别
    - AI 分析和节点创建
@@ -380,6 +386,46 @@ UI库：Ant Design
 ---
 
 ## 🔄 开发会话历史
+
+### 2026-02-01 22:00 - 22:10
+
+**完成内容**：
+1. ✅ Docker 镜像构建和部署测试
+   - 构建后端镜像（neuralnote-project-backend:latest，694MB）
+   - 构建前端镜像（neuralnote-project-frontend:latest，83.6MB）
+   - 启动所有 Docker 服务（5个容器）
+   - 验证服务健康状态（全部通过）
+   - 测试 API 可访问性（后端、前端、数据库、Redis、pgAdmin）
+2. ✅ 更新开发文档
+   - 更新 DevLog.md（记录镜像构建和部署测试过程）
+   - 更新 NextDevPrompt.md（更新进度和下一步任务）
+
+**技术决策**：
+1. **多阶段构建**：有效减少镜像大小（前端 83.6MB，后端 694MB）
+2. **健康检查**：每 30 秒自动检测服务状态，提高可靠性
+3. **非 root 用户**：使用 neuralnote:1000 运行容器，提高安全性
+
+**测试结果**：
+- ✅ 后端镜像构建成功（694MB）
+- ✅ 前端镜像构建成功（83.6MB）
+- ✅ 所有服务启动成功（5个容器全部健康）
+- ✅ 后端 API 健康检查通过：`{"status":"healthy","service":"NeuralNote","version":"0.1.0"}`
+- ✅ 前端服务响应正常：HTTP 200 OK
+- ✅ 数据库连接正常：PostgreSQL 15 + PgVector
+- ✅ Redis 缓存服务正常
+
+**镜像信息**：
+- neuralnote-project-backend: 694MB (python:3.11-slim)
+- neuralnote-project-frontend: 83.6MB (nginx:1.25-alpine)
+- 前端构建产物：~3.4MB (未压缩)，~1MB (gzip)
+- 代码分割：5个 vendor chunk（antd、3d、chart、react、redux）
+
+**下次继续**：
+- 端到端功能测试（用户注册、登录、文件上传、OCR、AI分析等）
+- 性能测试（并发、大文件、大量节点）
+- 问题修复和优化
+
+---
 
 ### 2026-02-01 00:00 - 01:20
 
