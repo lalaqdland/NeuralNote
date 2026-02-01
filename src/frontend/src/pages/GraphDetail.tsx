@@ -35,6 +35,9 @@ import { knowledgeGraphService, KnowledgeGraph } from '../services/knowledgeGrap
 import { memoryNodeService, MemoryNode } from '../services/memoryNode';
 import QuestionAnalysisModal from '../components/QuestionAnalysisModal';
 import GraphVisualization from '../components/GraphVisualization';
+import GraphVisualization3D from '../components/GraphVisualization3D';
+import NodeRelationsManager from '../components/NodeRelationsManager';
+import StatisticsCharts from '../components/StatisticsCharts';
 import dayjs from 'dayjs';
 import type { MenuProps } from 'antd';
 
@@ -49,10 +52,14 @@ const GraphDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [graph, setGraph] = useState<KnowledgeGraph | null>(null);
   const [nodes, setNodes] = useState<MemoryNode[]>([]);
+  const [relations, setRelations] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('graph');
   const [analysisModalVisible, setAnalysisModalVisible] = useState(false);
   const [nodeModalVisible, setNodeModalVisible] = useState(false);
+  const [relationsModalVisible, setRelationsModalVisible] = useState(false);
   const [editingNode, setEditingNode] = useState<MemoryNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<MemoryNode | null>(null);
+  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -61,6 +68,12 @@ const GraphDetailPage: React.FC = () => {
       loadNodes();
     }
   }, [graphId]);
+
+  useEffect(() => {
+    if (nodes.length > 0) {
+      loadRelations();
+    }
+  }, [nodes]);
 
   const loadGraphDetail = async () => {
     setLoading(true);
@@ -81,6 +94,25 @@ const GraphDetailPage: React.FC = () => {
       setNodes(response.items);
     } catch (error) {
       message.error('加载节点列表失败');
+    }
+  };
+
+  const loadRelations = async () => {
+    try {
+      // 获取所有节点的关联关系
+      const allRelations: any[] = [];
+      for (const node of nodes) {
+        const nodeRelations = await memoryNodeService.getRelations(node.id);
+        allRelations.push(...nodeRelations);
+      }
+      // 去重（因为每条边会被两个节点都获取到）
+      const uniqueRelations = allRelations.filter(
+        (rel, index, self) =>
+          index === self.findIndex((r) => r.id === rel.id)
+      );
+      setRelations(uniqueRelations);
+    } catch (error) {
+      console.error('加载关联关系失败:', error);
     }
   };
 
@@ -135,7 +167,18 @@ const GraphDetailPage: React.FC = () => {
     }
   };
 
+  const handleManageRelations = (node: MemoryNode) => {
+    setSelectedNode(node);
+    setRelationsModalVisible(true);
+  };
+
   const getNodeMenuItems = (node: MemoryNode): MenuProps['items'] => [
+    {
+      key: 'relations',
+      icon: <NodeIndexOutlined />,
+      label: '管理关联',
+      onClick: () => handleManageRelations(node),
+    },
     {
       key: 'edit',
       icon: <EditOutlined />,
@@ -327,7 +370,32 @@ const GraphDetailPage: React.FC = () => {
                     </Space>
                   </Empty>
                 ) : (
-                  <GraphVisualization graphId={graphId} nodes={nodes} />
+                  <div>
+                    {/* 2D/3D 切换按钮 */}
+                    <div style={{ marginBottom: 16, textAlign: 'right' }}>
+                      <Space>
+                        <Button
+                          type={viewMode === '2d' ? 'primary' : 'default'}
+                          onClick={() => setViewMode('2d')}
+                        >
+                          2D 视图
+                        </Button>
+                        <Button
+                          type={viewMode === '3d' ? 'primary' : 'default'}
+                          onClick={() => setViewMode('3d')}
+                        >
+                          3D 视图
+                        </Button>
+                      </Space>
+                    </div>
+
+                    {/* 渲染对应的图谱 */}
+                    {viewMode === '2d' ? (
+                      <GraphVisualization graphId={graphId} nodes={nodes} />
+                    ) : (
+                      <GraphVisualization3D graphId={graphId} nodes={nodes} relations={relations} />
+                    )}
+                  </div>
                 )}
               </Card>
             ),
@@ -404,7 +472,7 @@ const GraphDetailPage: React.FC = () => {
             ),
             children: (
               <Card>
-                <Empty description="统计功能开发中" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                <StatisticsCharts nodes={nodes} loading={loading} />
               </Card>
             ),
           },
@@ -467,6 +535,20 @@ const GraphDetailPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* 节点关联管理模态框 */}
+      {selectedNode && (
+        <NodeRelationsManager
+          visible={relationsModalVisible}
+          nodeId={selectedNode.id}
+          nodeName={selectedNode.title}
+          graphId={graphId}
+          onClose={() => {
+            setRelationsModalVisible(false);
+            setSelectedNode(null);
+          }}
+        />
+      )}
     </div>
   );
 };

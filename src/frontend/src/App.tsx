@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Typography, Space } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Layout, Menu, Avatar, Dropdown, Typography, Space, Button } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
   HomeOutlined,
@@ -8,10 +8,12 @@ import {
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
 import { authService } from './services/auth';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { setUser, clearUser } from './store/authSlice';
+import VectorSearchModal from './components/VectorSearchModal';
 import type { MenuProps } from 'antd';
 
 const { Header, Content, Footer } = Layout;
@@ -22,6 +24,7 @@ const App: React.FC = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
 
   useEffect(() => {
     // 初始化时从 localStorage 加载用户信息
@@ -118,16 +121,26 @@ const App: React.FC = () => {
           />
         </div>
 
-        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-          <Space style={{ cursor: 'pointer' }}>
-            <Avatar
-              style={{ backgroundColor: '#f56a00' }}
-              icon={<UserOutlined />}
-              src={user?.avatar_url}
-            />
-            <Text style={{ color: 'white', fontWeight: 500 }}>{user?.username || '用户'}</Text>
-          </Space>
-        </Dropdown>
+        <Space size="middle">
+          <Button
+            type="text"
+            icon={<SearchOutlined />}
+            onClick={() => setSearchModalVisible(true)}
+            style={{ color: 'white' }}
+          >
+            搜索
+          </Button>
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <Space style={{ cursor: 'pointer' }}>
+              <Avatar
+                style={{ backgroundColor: '#f56a00' }}
+                icon={<UserOutlined />}
+                src={user?.avatar_url}
+              />
+              <Text style={{ color: 'white', fontWeight: 500 }}>{user?.username || '用户'}</Text>
+            </Space>
+          </Dropdown>
+        </Space>
       </Header>
 
       <Content style={{ padding: '24px', background: '#f5f7fa' }}>
@@ -139,6 +152,12 @@ const App: React.FC = () => {
       <Footer style={{ textAlign: 'center', background: '#fff', borderTop: '1px solid #f0f0f0' }}>
         <Text type="secondary">NeuralNote ©2026 - 智能学习，知识图谱化管理</Text>
       </Footer>
+
+      {/* 全局搜索模态框 */}
+      <VectorSearchModal
+        visible={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
+      />
     </Layout>
   );
 };
