@@ -68,13 +68,12 @@ services:
       - neuralnote-network
 
   frontend:
-    image: nginx:1.25-alpine
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
     container_name: neuralnote-frontend
     ports:
       - "80:80"
-    volumes:
-      - ./src/frontend/dist:/usr/share/nginx/html:ro
-      - ./src/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       backend:
         condition: service_healthy

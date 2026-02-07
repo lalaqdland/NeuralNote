@@ -29,8 +29,6 @@ export default defineConfig({
           'antd-vendor': ['antd', '@ant-design/icons'],
           // 图表库
           'chart-vendor': ['recharts', 'cytoscape', 'cytoscape-dagre'],
-          // 3D 可视化库
-          '3d-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
         },
         // 优化 chunk 文件名
         chunkFileNames: 'assets/js/[name]-[hash].js',

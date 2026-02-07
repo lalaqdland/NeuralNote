@@ -1,5 +1,5 @@
 # ==================== 构建阶段 ====================
-FROM node:18-alpine as builder
+FROM node:18-alpine AS builder
 
 # 设置工作目录
 WORKDIR /app
@@ -12,6 +12,9 @@ RUN npm ci --legacy-peer-deps
 
 # 复制源代码
 COPY . .
+
+# 为低内存服务器提高 Node.js 构建堆上限，避免 Vite 构建 OOM
+ENV NODE_OPTIONS=--max_old_space_size=1536
 
 # 构建生产版本
 RUN npm run build
