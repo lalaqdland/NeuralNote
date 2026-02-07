@@ -1,4 +1,5 @@
 import apiClient from './api';
+import { getUserStats } from './achievement';
 
 // 类型定义
 export interface UpdateUserRequest {
@@ -36,8 +37,22 @@ export interface UserStatistics {
 export const userService = {
   // 获取用户统计数据
   async getUserStatistics(): Promise<UserStatistics> {
-    const response = await apiClient.get<UserStatistics>('/api/v1/users/statistics');
-    return response.data;
+    const stats = await getUserStats();
+    return {
+      total_graphs: stats.total_graphs ?? 0,
+      total_nodes: stats.total_nodes ?? 0,
+      total_reviews: stats.total_reviews ?? 0,
+      study_days: stats.current_streak ?? 0,
+      mastery_distribution: {
+        level_0: Math.max(0, (stats.total_nodes ?? 0) - (stats.mastered_nodes ?? 0)),
+        level_1: 0,
+        level_2: 0,
+        level_3: 0,
+        level_4: 0,
+        level_5: stats.mastered_nodes ?? 0,
+      },
+      recent_activity: [],
+    };
   },
 
   // 更新用户信息
@@ -55,7 +70,7 @@ export const userService = {
 
   // 修改密码
   async changePassword(data: ChangePasswordRequest): Promise<void> {
-    await apiClient.post('/api/v1/users/change-password', data);
+    await apiClient.post('/api/v1/auth/change-password', data);
   },
 };
 

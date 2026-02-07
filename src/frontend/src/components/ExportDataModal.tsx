@@ -22,12 +22,13 @@ import { knowledgeGraphService } from '../services/knowledgeGraph';
 import { memoryNodeService } from '../services/memoryNode';
 import { reviewService } from '../services/review';
 import { exportService, ExportFormat, ExportData } from '../services/export';
+import { UUID } from '../services/knowledgeGraph';
 
 const { Text, Paragraph } = Typography;
 
 interface ExportDataModalProps {
   visible: boolean;
-  graphId: number;
+  graphId: UUID;
   graphName: string;
   onClose: () => void;
 }

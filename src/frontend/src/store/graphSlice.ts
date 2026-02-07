@@ -35,7 +35,7 @@ const graphSlice = createSlice({
         state.currentGraph = action.payload;
       }
     },
-    removeGraph: (state, action: PayloadAction<number>) => {
+    removeGraph: (state, action: PayloadAction<string>) => {
       state.graphs = state.graphs.filter((g) => g.id !== action.payload);
       if (state.currentGraph?.id === action.payload) {
         state.currentGraph = null;

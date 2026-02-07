@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 class ReviewRequest(BaseModel):
     """复习请求"""
     quality: int = Field(..., ge=0, le=5, description="复习质量评分 (0-5)")
-    review_duration: int = Field(..., ge=0, description="复习时长（秒）")
+    review_duration: int = Field(60, ge=0, description="复习时长（秒）")
 
 
 class ReviewResponse(BaseModel):
