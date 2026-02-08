@@ -11,13 +11,14 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Sphere, Box, Cone, Octahedron } from '@react-three/drei';
 import * as THREE from 'three';
 import { MemoryNode } from '../services/memoryNode';
+import { UUID } from '../services/knowledgeGraph';
 
 interface GraphVisualization3DProps {
-  graphId: number;
+  graphId: UUID;
   nodes: MemoryNode[];
   relations?: Array<{
-    source_id: number;
-    target_id: number;
+    source_id: UUID;
+    target_id: UUID;
     relation_type: string;
     strength: number;
   }>;
@@ -25,7 +26,7 @@ interface GraphVisualization3DProps {
 }
 
 interface Node3D {
-  id: number;
+  id: UUID;
   position: THREE.Vector3;
   velocity: THREE.Vector3;
   node: MemoryNode;
@@ -304,7 +305,7 @@ const Scene: React.FC<{
   nodes3D: Node3D[];
   relations: any[];
   onNodeClick: (node: MemoryNode) => void;
-  selectedNodeId: number | null;
+  selectedNodeId: UUID | null;
   autoRotate: boolean;
 }> = ({ nodes3D, relations, onNodeClick, selectedNodeId, autoRotate }) => {
   const { camera } = useThree();
@@ -376,7 +377,7 @@ const GraphVisualization3D: React.FC<GraphVisualization3DProps> = ({
 }) => {
   const [loading, setLoading] = useState(true);
   const [layout, setLayout] = useState<LayoutType>('force');
-  const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<UUID | null>(null);
   const [autoRotate, setAutoRotate] = useState(false);
 
   // 根据布局类型获取节点位置

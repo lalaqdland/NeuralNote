@@ -42,6 +42,7 @@ import StatisticsCharts from '../components/StatisticsCharts';
 import ExportDataModal from '../components/ExportDataModal';
 import dayjs from 'dayjs';
 import type { MenuProps } from 'antd';
+import { UUID } from '../services/knowledgeGraph';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -49,7 +50,7 @@ const { TextArea } = Input;
 const GraphDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const graphId = parseInt(id || '0');
+  const graphId: UUID = id || '';
 
   const [loading, setLoading] = useState(false);
   const [graph, setGraph] = useState<KnowledgeGraph | null>(null);
@@ -139,7 +140,7 @@ const GraphDetailPage: React.FC = () => {
     setNodeModalVisible(true);
   };
 
-  const handleDeleteNode = async (nodeId: number) => {
+  const handleDeleteNode = async (nodeId: UUID) => {
     try {
       await memoryNodeService.deleteNode(nodeId);
       message.success('删除成功');

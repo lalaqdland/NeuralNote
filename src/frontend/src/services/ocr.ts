@@ -1,12 +1,13 @@
 import apiClient from './api';
+import { UUID } from './knowledgeGraph';
 
 // OCR 相关类型定义
 export interface OCRRequest {
-  file_id: number;
+  file_id: UUID;
 }
 
 export interface OCRResponse {
-  file_id: number;
+  file_id: UUID;
   text: string;
   confidence: number;
   words_result: Array<{
@@ -22,7 +23,7 @@ export interface OCRResponse {
 }
 
 export interface MathOCRResponse {
-  file_id: number;
+  file_id: UUID;
   latex: string;
   confidence: number;
   processing_time: number;
@@ -33,7 +34,7 @@ class OCRService {
   /**
    * 通用 OCR 识别
    */
-  async recognizeText(fileId: number): Promise<OCRResponse> {
+  async recognizeText(fileId: UUID): Promise<OCRResponse> {
     const response = await apiClient.post<OCRResponse>('/api/v1/ocr/ocr', {
       file_id: fileId,
     });
@@ -43,8 +44,8 @@ class OCRService {
   /**
    * 数学公式 OCR 识别
    */
-  async recognizeMath(fileId: number): Promise<MathOCRResponse> {
-    const response = await apiClient.post<MathOCRResponse>('/api/v1/ocr/math', {
+  async recognizeMath(fileId: UUID): Promise<MathOCRResponse> {
+    const response = await apiClient.post<MathOCRResponse>('/api/v1/ocr/ocr/math', {
       file_id: fileId,
     });
     return response.data;

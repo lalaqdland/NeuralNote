@@ -154,6 +154,32 @@ docker-compose logs -f
 docker-compose down
 ```
 
+### 自动发布（`dev` 分支）
+
+仓库已约定使用 GitHub Actions 自动发布，工作流文件：`.github/workflows/deploy-dev.yml`。
+
+触发方式：
+- 推送到 `dev` 分支
+- 手动触发 `workflow_dispatch`
+
+必需 Secrets：
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_SSH_KEY`
+- `DEPLOY_PORT`（可选，默认 `22`）
+
+发布流程：
+1. 打包源码为发布压缩包
+2. 上传到服务器
+3. 运行 `scripts/deploy_release.sh` 切换 `/opt/neuralnote/current` 到新版本
+4. 执行 `docker compose -f docker-compose.prod.yml up -d --build`
+5. 健康检查失败时自动回滚到上一版本
+
+### 前端 API 基址
+
+前端默认以同源路径访问 API（`/api/...`），不再默认指向 `http://localhost:8000`。  
+如需覆盖，可通过环境变量 `VITE_API_BASE_URL` 指定完整地址。
+
 ---
 
 ## 📚 文档体系
@@ -325,10 +351,10 @@ NeuralNote-Project/
 ### Git 工作流规范
 
 - **分支策略**：
-  - `master`：稳定版本，推送到 GitHub ✅
-  - `dev`：开发分支，仅本地使用 ❌ 不推送到 GitHub
+  - `master`：稳定版本分支
+  - `dev`：日常开发分支，推送后会触发自动部署流程
 - **合并规则**：使用 `git merge dev --no-ff` 保留合并历史
-- **推送规则**：只推送 master 分支到 GitHub
+- **推送规则**：`dev` 用于持续集成部署，`master` 用于稳定发布
 
 详细规范请查看：[Git 工作流程文档](docs/02_Tech/Git_Workflow.md)
 

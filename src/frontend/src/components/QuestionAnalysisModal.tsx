@@ -24,13 +24,14 @@ import ImageUpload from './ImageUpload';
 import { FileUploadResponse } from '../services/fileUpload';
 import { ocrService, OCRResponse } from '../services/ocr';
 import { aiAnalysisService, AnalyzeQuestionResponse } from '../services/aiAnalysis';
+import { UUID } from '../services/knowledgeGraph';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 
 interface QuestionAnalysisModalProps {
   visible: boolean;
-  graphId: number;
+  graphId: UUID;
   onClose: () => void;
   onSuccess?: (result: AnalyzeQuestionResponse) => void;
 }

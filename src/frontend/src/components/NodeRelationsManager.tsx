@@ -24,14 +24,15 @@ import {
   ArrowRightOutlined,
 } from '@ant-design/icons';
 import { memoryNodeService, NodeRelation, MemoryNode } from '../services/memoryNode';
+import { UUID } from '../services/knowledgeGraph';
 
 const { Text, Title } = Typography;
 
 interface NodeRelationsManagerProps {
   visible: boolean;
-  nodeId: number;
+  nodeId: UUID;
   nodeName: string;
-  graphId: number;
+  graphId: UUID;
   onClose: () => void;
 }
 
@@ -79,7 +80,7 @@ const NodeRelationsManager: React.FC<NodeRelationsManagerProps> = ({
 
   const handleAddRelation = () => {
     form.resetFields();
-    form.setFieldsValue({ strength: 1.0 });
+    form.setFieldsValue({ strength: 50 });
     setAddModalVisible(true);
   };
 
@@ -99,7 +100,7 @@ const NodeRelationsManager: React.FC<NodeRelationsManagerProps> = ({
     }
   };
 
-  const handleDeleteRelation = async (relationId: number) => {
+  const handleDeleteRelation = async (relationId: UUID) => {
     try {
       await memoryNodeService.deleteRelation(relationId);
       message.success('删除成功');
@@ -113,10 +114,7 @@ const NodeRelationsManager: React.FC<NodeRelationsManagerProps> = ({
     const labels: Record<string, string> = {
       prerequisite: '前置知识',
       related: '相关知识',
-      example: '示例',
-      application: '应用',
-      extends: '扩展',
-      similar: '相似',
+      similar: '相似知识',
     };
     return labels[type] || type;
   };
@@ -125,15 +123,12 @@ const NodeRelationsManager: React.FC<NodeRelationsManagerProps> = ({
     const colors: Record<string, string> = {
       prerequisite: 'red',
       related: 'blue',
-      example: 'green',
-      application: 'orange',
-      extends: 'purple',
       similar: 'cyan',
     };
     return colors[type] || 'default';
   };
 
-  const getNodeName = (nodeId: number) => {
+  const getNodeName = (nodeId: UUID) => {
     const node = nodes.find((n) => n.id === nodeId);
     return node?.title || `节点 #${nodeId}`;
   };
@@ -277,7 +272,7 @@ const NodeRelationsManager: React.FC<NodeRelationsManagerProps> = ({
                             <Tag color={getRelationTypeColor(relation.relation_type)}>
                               {getRelationTypeLabel(relation.relation_type)}
                             </Tag>
-                            <Text type="secondary">强度: {relation.strength.toFixed(2)}</Text>
+                            <Text type="secondary">强度: {relation.strength}</Text>
                           </Space>
                         }
                       />
@@ -333,18 +328,6 @@ const NodeRelationsManager: React.FC<NodeRelationsManagerProps> = ({
                 <Tag color="blue">相关知识</Tag>
                 <Text type="secondary">与当前节点相关的知识点</Text>
               </Select.Option>
-              <Select.Option value="example">
-                <Tag color="green">示例</Tag>
-                <Text type="secondary">当前节点的具体示例</Text>
-              </Select.Option>
-              <Select.Option value="application">
-                <Tag color="orange">应用</Tag>
-                <Text type="secondary">当前节点的实际应用</Text>
-              </Select.Option>
-              <Select.Option value="extends">
-                <Tag color="purple">扩展</Tag>
-                <Text type="secondary">当前节点的扩展知识</Text>
-              </Select.Option>
               <Select.Option value="similar">
                 <Tag color="cyan">相似</Tag>
                 <Text type="secondary">与当前节点相似的知识点</Text>
@@ -356,14 +339,14 @@ const NodeRelationsManager: React.FC<NodeRelationsManagerProps> = ({
             name="strength"
             label="关联强度"
             rules={[{ required: true, message: '请输入关联强度' }]}
-            extra="0.0 - 1.0，数值越大表示关联越强"
+            extra="0 - 100，数值越大表示关联越强"
           >
             <InputNumber
               min={0}
-              max={1}
-              step={0.1}
+              max={100}
+              step={1}
               style={{ width: '100%' }}
-              placeholder="例如：0.8"
+              placeholder="例如：80"
             />
           </Form.Item>
         </Form>

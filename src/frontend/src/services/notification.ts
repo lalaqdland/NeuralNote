@@ -4,6 +4,7 @@
  */
 
 import { reviewService } from './review';
+import { UUID } from './knowledgeGraph';
 
 export interface NotificationSettings {
   enabled: boolean;
@@ -19,7 +20,7 @@ export interface NotificationRecord {
   title: string;
   body: string;
   timestamp: number;
-  graphId?: number;
+  graphId?: UUID;
   dueCount?: number;
   clicked: boolean;
 }
@@ -81,7 +82,7 @@ class NotificationService {
    */
   async sendNotification(
     title: string,
-    options?: NotificationOptions & { graphId?: number; dueCount?: number }
+    options?: NotificationOptions & { graphId?: UUID; dueCount?: number }
   ): Promise<void> {
     const permission = await this.requestPermission();
     if (!permission) {
@@ -166,7 +167,7 @@ class NotificationService {
   /**
    * 检查待复习节点并发送通知
    */
-  async checkAndNotify(graphId: number): Promise<void> {
+  async checkAndNotify(graphId: UUID): Promise<void> {
     if (!this.settings.enabled) {
       return;
     }
@@ -197,7 +198,7 @@ class NotificationService {
   /**
    * 启动定时检查
    */
-  startPeriodicCheck(graphId: number): void {
+  startPeriodicCheck(graphId: UUID): void {
     this.stopPeriodicCheck();
 
     if (!this.settings.enabled) {

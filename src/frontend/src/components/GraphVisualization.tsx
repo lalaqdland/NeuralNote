@@ -9,12 +9,13 @@ import {
 import cytoscape, { Core, NodeSingular } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import { MemoryNode } from '../services/memoryNode';
+import { UUID } from '../services/knowledgeGraph';
 
 // 注册 dagre 布局
 cytoscape.use(dagre);
 
 interface GraphVisualizationProps {
-  graphId: number;
+  graphId: UUID;
   nodes: MemoryNode[];
   onNodeClick?: (node: MemoryNode) => void;
 }

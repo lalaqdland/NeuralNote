@@ -12,6 +12,8 @@
 - [配置说明](#配置说明)
 - [常见问题](#常见问题)
 - [服务管理](#服务管理)
+- [自动发布（dev）](#自动发布dev)
+- [回滚与故障排查（生产）](#回滚与故障排查生产)
 
 ---
 
@@ -477,6 +479,97 @@ docker system prune -a --volumes
 
 ---
 
+## 🚚 自动发布（dev）
+
+### 工作流位置
+
+- `.github/workflows/deploy-dev.yml`
+
+### 触发条件
+
+- `push` 到 `dev` 分支
+- 手动触发 `workflow_dispatch`
+
+### 必需 Secrets
+
+- `DEPLOY_HOST`：部署服务器地址（示例：`47.101.214.41`）
+- `DEPLOY_USER`：SSH 登录用户（示例：`root`）
+- `DEPLOY_SSH_KEY`：私钥内容（建议专用部署密钥）
+- `DEPLOY_PORT`：SSH 端口（可选，默认 `22`）
+
+### 发布流程
+
+1. GitHub Actions 打包仓库源码为 `neuralnote_release_<timestamp>.tar.gz`
+2. 通过 SCP 上传发布包和 `scripts/deploy_release.sh` 到服务器 `/tmp`
+3. 执行部署脚本，自动完成：
+   - 解压到 `/opt/neuralnote/releases/<timestamp>`
+   - 切换软链 `/opt/neuralnote/current`
+   - 运行 `docker compose -f docker-compose.prod.yml up -d --build`
+   - 健康检查（前端 `/`、后端 `/api/v1/health/ping`）
+4. 若健康检查失败，自动回滚到上一版本并重新拉起容器
+
+---
+
+## 🔁 回滚与故障排查（生产）
+
+### 手动回滚命令
+
+```bash
+# 1) 查看历史版本
+ls -la /opt/neuralnote/releases
+
+# 2) 切换 current 到目标版本（替换为实际时间戳）
+ln -sfn /opt/neuralnote/releases/<release_id> /opt/neuralnote/current
+
+# 3) 重新拉起服务
+cd /opt/neuralnote/current
+docker compose -f docker-compose.prod.yml up -d --build
+
+# 4) 验证
+curl -f http://127.0.0.1/
+curl -f http://127.0.0.1/api/v1/health/ping
+docker compose -f docker-compose.prod.yml ps
+```
+
+### 常见失败点与处理
+
+1. 依赖安装失败（`npm install` / `npm ci`）
+   - 现象：构建阶段报 `npm ERR!` 或 peer dependency 冲突
+   - 处理：
+     ```bash
+     cd src/frontend
+     rm -rf node_modules package-lock.json
+     npm install
+     npm run build
+     ```
+   - 说明：确保锁文件与 `package.json` 保持一致后再发布
+
+2. 镜像构建失败（`docker compose ... up -d --build`）
+   - 现象：网络超时、镜像拉取失败、系统包安装失败
+   - 处理：
+     ```bash
+     cd /opt/neuralnote/current
+     docker compose -f docker-compose.prod.yml build --no-cache frontend backend
+     docker compose -f docker-compose.prod.yml up -d
+     docker compose -f docker-compose.prod.yml logs --tail=200 backend
+     ```
+   - 说明：可先单独构建失败服务，缩小排查范围
+
+3. 健康检查失败（前端或后端）
+   - 现象：脚本等待超时，触发自动回滚
+   - 处理：
+     ```bash
+     cd /opt/neuralnote/current
+     docker compose -f docker-compose.prod.yml ps
+     docker compose -f docker-compose.prod.yml logs --tail=200 frontend
+     docker compose -f docker-compose.prod.yml logs --tail=200 backend
+     curl -v http://127.0.0.1/
+     curl -v http://127.0.0.1/api/v1/health/ping
+     ```
+   - 说明：优先确认端口映射、Nginx 反代、后端容器健康状态
+
+---
+
 ## 📊 监控和调试
 
 ### 健康检查
@@ -582,6 +675,10 @@ docker-compose exec -T postgres psql -U neuralnote neuralnote_dev < backup.sql
 ---
 
 **创建时间**：2026-02-02  
-**最后更新**：2026-02-02  
-**版本**：v1.0.0
+**最后更新**：2026-02-07  
+**版本**：v1.1.0
+
+
+
+
 

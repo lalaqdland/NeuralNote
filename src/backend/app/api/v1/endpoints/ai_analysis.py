@@ -152,8 +152,10 @@ async def analyze_question_from_file(
         engine=request.engine
     )
     
-    # 生成向量嵌入
-    embedding = await ai_service.generate_embedding(ocr_text)
+    # 生成向量嵌入（OpenAI 未配置时允许降级）
+    embedding = None
+    if ai_service.openai_configured:
+        embedding = await ai_service.generate_embedding(ocr_text)
     
     # 创建记忆节点（如果需要）
     node_id = None
@@ -175,6 +177,8 @@ async def analyze_question_from_file(
         # 创建记忆节点
         memory_node = MemoryNode(
             graph_id=request.graph_id,
+            user_id=current_user.id,
+            created_by=current_user.id,
             node_type="QUESTION",
             title=analysis_result.get("summary", "题目")[:100],
             summary=analysis_result.get("summary", ""),
@@ -187,7 +191,7 @@ async def analyze_question_from_file(
                 "file_id": str(file_upload.id),
                 "file_url": file_upload.file_url,
             },
-            embedding=embedding,
+            content_embedding=embedding,
         )
         
         db.add(memory_node)

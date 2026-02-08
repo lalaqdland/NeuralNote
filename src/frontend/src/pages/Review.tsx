@@ -30,6 +30,7 @@ import { knowledgeGraphService, KnowledgeGraph } from '../services/knowledgeGrap
 import { reviewService, ReviewMode, ReviewNode, ReviewStats } from '../services/review';
 import { notificationService } from '../services/notification';
 import ReviewCard from '../components/ReviewCard';
+import { UUID } from '../services/knowledgeGraph';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -37,7 +38,7 @@ const Review: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [reviewMode, setReviewMode] = useState<ReviewMode>('spaced');
-  const [selectedGraph, setSelectedGraph] = useState<number | null>(null);
+  const [selectedGraph, setSelectedGraph] = useState<UUID | null>(null);
   const [graphs, setGraphs] = useState<KnowledgeGraph[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [reviewQueue, setReviewQueue] = useState<ReviewNode[]>([]);
@@ -71,10 +72,7 @@ const Review: React.FC = () => {
     // 从 URL 参数中获取图谱 ID（从通知点击进入）
     const graphIdFromUrl = searchParams.get('graph');
     if (graphIdFromUrl && graphs.length > 0) {
-      const graphId = parseInt(graphIdFromUrl, 10);
-      if (!isNaN(graphId)) {
-        setSelectedGraph(graphId);
-      }
+      setSelectedGraph(graphIdFromUrl);
     }
   }, [searchParams, graphs]);
 

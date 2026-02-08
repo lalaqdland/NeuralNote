@@ -96,7 +96,7 @@ class ExportService {
       markdown += `## 📈 学习统计\n\n`;
       markdown += `- **总节点数**: ${stats.total_nodes}\n`;
       markdown += `- **已掌握**: ${stats.mastered_nodes}\n`;
-      markdown += `- **平均掌握度**: ${(stats.average_mastery * 100).toFixed(1)}%\n`;
+      markdown += `- **平均掌握度**: ${Number(stats.average_mastery ?? 0).toFixed(1)} / 5\n`;
       markdown += `- **今日复习**: ${stats.reviewed_today}\n`;
       markdown += `- **待复习**: ${stats.due_today}\n`;
       markdown += `- **连续打卡**: ${stats.streak_days} 天\n\n`;
@@ -283,10 +283,11 @@ class ExportService {
    * 获取掌握度标签
    */
   private getMasteryLabel(level: number): string {
-    if (level >= 0.8) return '✅ 已掌握';
-    if (level >= 0.6) return '🟢 熟练';
-    if (level >= 0.4) return '🟡 一般';
-    if (level >= 0.2) return '🟠 薄弱';
+    if (level >= 5) return '✅ 完全掌握';
+    if (level >= 4) return '🟢 精通';
+    if (level >= 3) return '🟡 熟练';
+    if (level >= 2) return '🟠 基本掌握';
+    if (level >= 1) return '🔴 初步了解';
     return '🔴 未掌握';
   }
 

@@ -52,7 +52,7 @@ export interface UserProfile {
  * 获取用户统计数据
  */
 export const getUserStats = async (): Promise<UserStats> => {
-  const response = await api.get('/achievements/stats');
+  const response = await api.get('/api/v1/achievements/stats');
   return response.data.data;
 };
 
@@ -60,7 +60,7 @@ export const getUserStats = async (): Promise<UserStats> => {
  * 获取用户等级信息
  */
 export const getUserLevel = async (): Promise<LevelInfo> => {
-  const response = await api.get('/achievements/level');
+  const response = await api.get('/api/v1/achievements/level');
   return response.data.data;
 };
 
@@ -68,7 +68,7 @@ export const getUserLevel = async (): Promise<LevelInfo> => {
  * 获取用户成就列表
  */
 export const getUserAchievements = async (): Promise<AchievementsData> => {
-  const response = await api.get('/achievements/achievements');
+  const response = await api.get('/api/v1/achievements/achievements');
   return response.data.data;
 };
 
@@ -76,7 +76,7 @@ export const getUserAchievements = async (): Promise<AchievementsData> => {
  * 获取用户完整档案
  */
 export const getUserProfile = async (): Promise<UserProfile> => {
-  const response = await api.get('/achievements/profile');
+  const response = await api.get('/api/v1/achievements/profile');
   return response.data.data;
 };
 

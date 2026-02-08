@@ -23,13 +23,14 @@ import {
 } from '@ant-design/icons';
 import { vectorSearchService, SimilarNode } from '../services/vectorSearch';
 import { useNavigate } from 'react-router-dom';
+import { UUID } from '../services/knowledgeGraph';
 
 const { Text, Title, Paragraph } = Typography;
 const { TextArea } = Input;
 
 interface VectorSearchModalProps {
   visible: boolean;
-  graphId?: number;
+  graphId?: UUID;
   onClose: () => void;
 }
 

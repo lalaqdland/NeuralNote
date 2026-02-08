@@ -38,6 +38,7 @@ import { setGraphs, addGraph, updateGraph as updateGraphAction, removeGraph } fr
 import ExportDataModal from '../components/ExportDataModal';
 import dayjs from 'dayjs';
 import type { MenuProps } from 'antd';
+import { UUID } from '../services/knowledgeGraph';
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -84,7 +85,7 @@ const KnowledgeGraphPage: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleDelete = async (graphId: number) => {
+  const handleDelete = async (graphId: UUID) => {
     try {
       await knowledgeGraphService.deleteGraph(graphId);
       message.success('删除成功');
