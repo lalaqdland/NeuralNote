@@ -1,0 +1,231 @@
+name: Deploy NeuralNote (dev/master)
+
+on:
+  push:
+    branches:
+      - dev
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      HOST_SHANGHAI: ${{ secrets.HOST_SHANGHAI }}
+      HOST_HK_NEURALNOTE: ${{ secrets.HOST_HK_NEURALNOTE }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
+      ALIYUN_REGISTRY_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
+      ALIYUN_REGISTRY_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
+      LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
+      DEPLOY_ROOT: /opt/neuralnote
+      COMPOSE_FILE: docker-compose.prod.yml
+      DEPLOY_USER: root
+      DEPLOY_PORT: "22"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve deploy target and image metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BRANCH="${GITHUB_REF_NAME}"
+          case "${BRANCH}" in
+            dev)
+              DEPLOY_HOST="${HOST_SHANGHAI}"
+              FRONTEND_BIND_ADDR="0.0.0.0"
+              FRONTEND_BIND_PORT="80"
+              VERIFY_FRONTEND_URL="http://${DEPLOY_HOST}/"
+              VERIFY_BACKEND_URL="http://${DEPLOY_HOST}/api/v1/health/ping"
+              ;;
+            master)
+              DEPLOY_HOST="${HOST_HK_NEURALNOTE}"
+              FRONTEND_BIND_ADDR="127.0.0.1"
+              FRONTEND_BIND_PORT="18080"
+              MAIN_DOMAIN="neuralnote.capootech.com"
+              DEV_DOMAIN="dev.neuralnote.capootech.com"
+              VERIFY_FRONTEND_URL="https://${MAIN_DOMAIN}/"
+              VERIFY_BACKEND_URL="https://${MAIN_DOMAIN}/api/v1/health/ping"
+              ;;
+            *)
+              echo "Unsupported branch: ${BRANCH}" >&2
+              exit 1
+              ;;
+          esac
+
+          : "${DEPLOY_HOST:?DEPLOY_HOST is required for branch ${BRANCH}}"
+          : "${SSH_PRIVATE_KEY:?SSH_PRIVATE_KEY is required}"
+          : "${ALIYUN_REGISTRY:?ALIYUN_REGISTRY is required}"
+          : "${ALIYUN_REGISTRY_USER:?ALIYUN_REGISTRY_USER is required}"
+          : "${ALIYUN_REGISTRY_PASSWORD:?ALIYUN_REGISTRY_PASSWORD is required}"
+
+          REGISTRY_INPUT="${ALIYUN_REGISTRY#http://}"
+          REGISTRY_INPUT="${REGISTRY_INPUT#https://}"
+          REGISTRY_INPUT="${REGISTRY_INPUT%/}"
+          if [[ "${REGISTRY_INPUT}" == */* ]]; then
+            REGISTRY_NS="${REGISTRY_INPUT}"
+            REGISTRY_HOST="${REGISTRY_INPUT%%/*}"
+          else
+            REGISTRY_HOST="${REGISTRY_INPUT}"
+            REGISTRY_NS="${REGISTRY_INPUT}/capoo"
+          fi
+
+          SHA_TAG="${GITHUB_SHA::12}"
+          BACKEND_IMAGE_SHA="${REGISTRY_NS}/neuralnote-backend:${SHA_TAG}"
+          BACKEND_IMAGE_BRANCH="${REGISTRY_NS}/neuralnote-backend:${BRANCH}-latest"
+          FRONTEND_IMAGE_SHA="${REGISTRY_NS}/neuralnote-frontend:${SHA_TAG}"
+          FRONTEND_IMAGE_BRANCH="${REGISTRY_NS}/neuralnote-frontend:${BRANCH}-latest"
+
+          RELEASE_ID="$(date -u +%Y%m%d%H%M%S)"
+          ARCHIVE_NAME="neuralnote_release_${RELEASE_ID}.tar.gz"
+
+          {
+            echo "BRANCH=${BRANCH}"
+            echo "DEPLOY_HOST=${DEPLOY_HOST}"
+            echo "REGISTRY_HOST=${REGISTRY_HOST}"
+            echo "REGISTRY_NS=${REGISTRY_NS}"
+            echo "SHA_TAG=${SHA_TAG}"
+            echo "BACKEND_IMAGE_SHA=${BACKEND_IMAGE_SHA}"
+            echo "BACKEND_IMAGE_BRANCH=${BACKEND_IMAGE_BRANCH}"
+            echo "FRONTEND_IMAGE_SHA=${FRONTEND_IMAGE_SHA}"
+            echo "FRONTEND_IMAGE_BRANCH=${FRONTEND_IMAGE_BRANCH}"
+            echo "FRONTEND_BIND_ADDR=${FRONTEND_BIND_ADDR}"
+            echo "FRONTEND_BIND_PORT=${FRONTEND_BIND_PORT}"
+            echo "VERIFY_FRONTEND_URL=${VERIFY_FRONTEND_URL}"
+            echo "VERIFY_BACKEND_URL=${VERIFY_BACKEND_URL}"
+            echo "RELEASE_ID=${RELEASE_ID}"
+            echo "ARCHIVE_NAME=${ARCHIVE_NAME}"
+            if [[ "${BRANCH}" == "master" ]]; then
+              echo "MAIN_DOMAIN=${MAIN_DOMAIN}"
+              echo "DEV_DOMAIN=${DEV_DOMAIN}"
+            fi
+          } >> "${GITHUB_ENV}"
+
+      - name: Login to Aliyun registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${ALIYUN_REGISTRY_PASSWORD}" | docker login "${REGISTRY_HOST}" -u "${ALIYUN_REGISTRY_USER}" --password-stdin
+
+      - name: Build and push backend image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build \
+            -f src/backend/Dockerfile \
+            -t "${BACKEND_IMAGE_SHA}" \
+            -t "${BACKEND_IMAGE_BRANCH}" \
+            .
+          docker push "${BACKEND_IMAGE_SHA}"
+          docker push "${BACKEND_IMAGE_BRANCH}"
+
+      - name: Build and push frontend image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build \
+            -f src/frontend/Dockerfile \
+            -t "${FRONTEND_IMAGE_SHA}" \
+            -t "${FRONTEND_IMAGE_BRANCH}" \
+            ./src/frontend
+          docker push "${FRONTEND_IMAGE_SHA}"
+          docker push "${FRONTEND_IMAGE_BRANCH}"
+
+      - name: Build release archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf "${ARCHIVE_NAME}" \
+            --exclude='./.git' \
+            --exclude='./venv' \
+            --exclude='./src/frontend/node_modules' \
+            --exclude='./src/frontend/dist' \
+            --exclude='./neuralnote_deploy.tar' \
+            --exclude='./neuralnote_release_*.tar.gz' \
+            .
+
+      - name: Prepare SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${DEPLOY_PORT}" -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Setup HK edge proxy (master only)
+        if: ${{ github.ref_name == 'master' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          scp -P "${DEPLOY_PORT}" "scripts/setup_hk_edge_proxy.sh" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/setup_hk_edge_proxy.sh"
+          ssh -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" "\
+            set -euo pipefail; \
+            chmod +x /tmp/setup_hk_edge_proxy.sh; \
+            MAIN_DOMAIN='${MAIN_DOMAIN}' \
+            DEV_DOMAIN='${DEV_DOMAIN}' \
+            SHANGHAI_UPSTREAM='http://47.101.214.41:80' \
+            DEV_UPSTREAM_HOST_HEADER='47.101.214.41' \
+            HK_LOCAL_UPSTREAM='http://127.0.0.1:18080' \
+            LETSENCRYPT_EMAIL='${LETSENCRYPT_EMAIL}' \
+            bash /tmp/setup_hk_edge_proxy.sh; \
+            rm -f /tmp/setup_hk_edge_proxy.sh\
+          "
+
+      - name: Create deploy runtime env file
+        shell: bash
+        run: |
+          set -euo pipefail
+          REGISTRY_PASSWORD_B64="$(printf '%s' "${ALIYUN_REGISTRY_PASSWORD}" | base64 | tr -d '\n')"
+          {
+            echo "DEPLOY_ROOT=${DEPLOY_ROOT}"
+            echo "COMPOSE_FILE=${COMPOSE_FILE}"
+            echo "DEPLOY_MODE=registry"
+            echo "BACKEND_IMAGE=${BACKEND_IMAGE_SHA}"
+            echo "FRONTEND_IMAGE=${FRONTEND_IMAGE_SHA}"
+            echo "FRONTEND_BIND_ADDR=${FRONTEND_BIND_ADDR}"
+            echo "FRONTEND_BIND_PORT=${FRONTEND_BIND_PORT}"
+            echo "REGISTRY_HOST=${REGISTRY_HOST}"
+            echo "REGISTRY_USER=${ALIYUN_REGISTRY_USER}"
+            echo "REGISTRY_PASSWORD_B64=${REGISTRY_PASSWORD_B64}"
+          } > deploy_runtime.env
+
+      - name: Upload release and deploy assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          scp -P "${DEPLOY_PORT}" "${ARCHIVE_NAME}" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/${ARCHIVE_NAME}"
+          scp -P "${DEPLOY_PORT}" "scripts/deploy_release.sh" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/deploy_release.sh"
+          scp -P "${DEPLOY_PORT}" "deploy_runtime.env" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/deploy_runtime.env"
+
+      - name: Deploy on target server
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" "\
+            set -euo pipefail; \
+            set -a; source /tmp/deploy_runtime.env; set +a; \
+            export REGISTRY_PASSWORD=\"\$(printf '%s' \"\${REGISTRY_PASSWORD_B64}\" | base64 -d)\"; \
+            unset REGISTRY_PASSWORD_B64; \
+            bash /tmp/deploy_release.sh /tmp/${ARCHIVE_NAME} ${RELEASE_ID}; \
+            rm -f /tmp/${ARCHIVE_NAME} /tmp/deploy_release.sh /tmp/deploy_runtime.env\
+          "
+
+      - name: Verify public health endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --retry 30 --retry-delay 5 "${VERIFY_FRONTEND_URL}" >/dev/null
+          curl -fsS --retry 30 --retry-delay 5 "${VERIFY_BACKEND_URL}" | grep -q '"message":"pong"'
+          if [[ "${BRANCH}" == "master" ]]; then
+            curl -fsS --retry 30 --retry-delay 5 "https://dev.neuralnote.capootech.com/api/v1/health/ping" | grep -q '"message":"pong"'
+          fi
+          echo "Deploy verification passed for branch ${BRANCH}: ${VERIFY_FRONTEND_URL}"

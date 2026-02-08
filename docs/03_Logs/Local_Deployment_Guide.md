@@ -12,7 +12,7 @@
 - [配置说明](#配置说明)
 - [常见问题](#常见问题)
 - [服务管理](#服务管理)
-- [自动发布（dev）](#自动发布dev)
+- [自动发布（dev/master 双机）](#自动发布devmaster-双机)
 - [回滚与故障排查（生产）](#回滚与故障排查生产)
 
 ---
@@ -479,34 +479,81 @@ docker system prune -a --volumes
 
 ---
 
-## 🚚 自动发布（dev）
+## 🚚 自动发布（dev/master 双机）
 
 ### 工作流位置
 
-- `.github/workflows/deploy-dev.yml`
+- `.github/workflows/deploy-branches.yml`
 
 ### 触发条件
 
-- `push` 到 `dev` 分支
+- `push` 到 `dev` 或 `master` 分支
 - 手动触发 `workflow_dispatch`
+
+### 分支路由
+
+- `dev` -> 上海服务器（`HOST_SHANGHAI`，当前为 `47.101.214.41`）
+- `master` -> 香港服务器（`HOST_HK_NEURALNOTE`，当前为 `47.242.60.251`）
 
 ### 必需 Secrets
 
-- `DEPLOY_HOST`：部署服务器地址（示例：`47.101.214.41`）
-- `DEPLOY_USER`：SSH 登录用户（示例：`root`）
-- `DEPLOY_SSH_KEY`：私钥内容（建议专用部署密钥）
-- `DEPLOY_PORT`：SSH 端口（可选，默认 `22`）
+- `ALIYUN_REGISTRY`：阿里云镜像仓库地址（可带命名空间；若不带默认补 `capoo`）
+- `ALIYUN_REGISTRY_USER`：镜像仓库用户名
+- `ALIYUN_REGISTRY_PASSWORD`：镜像仓库密码
+- `HOST_SHANGHAI`：上海服务器 IP/域名
+- `HOST_HK_NEURALNOTE`：香港服务器 IP/域名
+- `SSH_PRIVATE_KEY`：部署私钥（工作流固定使用 `root@host:22`）
+- `LETSENCRYPT_EMAIL`（可选）：香港域名证书申请邮箱
+
+### 香港域名网关路由（固定）
+
+- `https://neuralnote.capootech.com` -> 香港本机 `http://127.0.0.1:18080`
+- `https://dev.neuralnote.capootech.com` -> 上海公网 `http://47.101.214.41:80`（全站反代）
+
+### 前端端口绑定变量（生产）
+
+- `FRONTEND_BIND_ADDR`：前端容器绑定地址（默认 `0.0.0.0`）
+- `FRONTEND_BIND_PORT`：前端容器绑定端口（默认 `80`）
+- 分支默认值：
+  - `dev`: `0.0.0.0:80`
+  - `master`: `127.0.0.1:18080`（仅香港 Nginx 访问）
 
 ### 发布流程
 
-1. GitHub Actions 打包仓库源码为 `neuralnote_release_<timestamp>.tar.gz`
-2. 通过 SCP 上传发布包和 `scripts/deploy_release.sh` 到服务器 `/tmp`
-3. 执行部署脚本，自动完成：
+1. GitHub Actions 根据分支选择目标服务器
+2. 若分支为 `master`，先在香港执行 `scripts/setup_hk_edge_proxy.sh`：
+   - 安装 Nginx + Certbot
+   - 申请/续签 `neuralnote.capootech.com` 与 `dev.neuralnote.capootech.com` 证书
+   - 配置双域名反代与自动续期
+3. 构建并推送前后端镜像：
+   - `${REGISTRY_NS}/neuralnote-backend:<sha12>` 与 `<branch>-latest`
+   - `${REGISTRY_NS}/neuralnote-frontend:<sha12>` 与 `<branch>-latest`
+4. 打包仓库源码为 `neuralnote_release_<timestamp>.tar.gz`
+5. 通过 SCP 上传发布包、`scripts/deploy_release.sh`、`deploy_runtime.env` 到服务器 `/tmp`
+6. 执行部署脚本（`DEPLOY_MODE=registry`），自动完成：
    - 解压到 `/opt/neuralnote/releases/<timestamp>`
+   - 将 `src/backend/.env` 链接到 `/opt/neuralnote/shared/backend.env`
+   - 写入 `.deploy-images.env`（记录镜像 tag + 前端端口绑定变量）
    - 切换软链 `/opt/neuralnote/current`
-   - 运行 `docker compose -f docker-compose.prod.yml up -d --build`
-   - 健康检查（前端 `/`、后端 `/api/v1/health/ping`）
-4. 若健康检查失败，自动回滚到上一版本并重新拉起容器
+   - 运行 `docker compose --env-file .deploy-images.env -f docker-compose.prod.yml pull`
+   - 运行 `docker compose --env-file .deploy-images.env -f docker-compose.prod.yml up -d --no-build`
+   - 健康检查：
+     - `dev`：`http://<上海IP>/` 与 `http://<上海IP>/api/v1/health/ping`
+     - `master`：`https://neuralnote.capootech.com/` 与 `https://neuralnote.capootech.com/api/v1/health/ping`
+7. 若健康检查失败，自动回滚到上一版本并优先使用上一版 `.deploy-images.env` 重启容器
+
+### 服务器一次性初始化
+
+```bash
+# 两台机器都执行
+mkdir -p /opt/neuralnote/shared /opt/neuralnote/releases
+
+# 上海：若已有历史部署，可迁移旧 env
+cp /opt/neuralnote/current/src/backend/.env /opt/neuralnote/shared/backend.env
+
+# 香港：首次独立环境，手工创建
+vi /opt/neuralnote/shared/backend.env
+```
 
 ---
 
@@ -521,14 +568,23 @@ ls -la /opt/neuralnote/releases
 # 2) 切换 current 到目标版本（替换为实际时间戳）
 ln -sfn /opt/neuralnote/releases/<release_id> /opt/neuralnote/current
 
-# 3) 重新拉起服务
+# 3) 重新拉起服务（镜像模式）
 cd /opt/neuralnote/current
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose --env-file .deploy-images.env -f docker-compose.prod.yml pull backend frontend
+docker compose --env-file .deploy-images.env -f docker-compose.prod.yml up -d --no-build --remove-orphans
 
 # 4) 验证
 curl -f http://127.0.0.1/
 curl -f http://127.0.0.1/api/v1/health/ping
-docker compose -f docker-compose.prod.yml ps
+docker compose --env-file .deploy-images.env -f docker-compose.prod.yml ps
+```
+
+香港域名入口验证（master 环境）：
+
+```bash
+curl -I https://neuralnote.capootech.com
+curl -fsS https://neuralnote.capootech.com/api/v1/health/ping
+curl -I https://dev.neuralnote.capootech.com
 ```
 
 ### 常见失败点与处理
@@ -544,16 +600,18 @@ docker compose -f docker-compose.prod.yml ps
      ```
    - 说明：确保锁文件与 `package.json` 保持一致后再发布
 
-2. 镜像构建失败（`docker compose ... up -d --build`）
-   - 现象：网络超时、镜像拉取失败、系统包安装失败
+2. 镜像拉取/启动失败（`docker compose ... pull` / `up -d --no-build`）
+   - 现象：镜像 tag 不存在、仓库认证失败、网络超时
    - 处理：
      ```bash
      cd /opt/neuralnote/current
-     docker compose -f docker-compose.prod.yml build --no-cache frontend backend
-     docker compose -f docker-compose.prod.yml up -d
+     cat .deploy-images.env
+     echo "$ALIYUN_REGISTRY_PASSWORD" | docker login <registry-host> -u "$ALIYUN_REGISTRY_USER" --password-stdin
+     docker compose --env-file .deploy-images.env -f docker-compose.prod.yml pull backend frontend
+     docker compose --env-file .deploy-images.env -f docker-compose.prod.yml up -d --no-build
      docker compose -f docker-compose.prod.yml logs --tail=200 backend
      ```
-   - 说明：可先单独构建失败服务，缩小排查范围
+   - 说明：优先确认镜像 tag、仓库权限、服务器到 ACR 网络连通性
 
 3. 健康检查失败（前端或后端）
    - 现象：脚本等待超时，触发自动回滚
