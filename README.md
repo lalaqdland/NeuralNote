@@ -154,26 +154,51 @@ docker-compose logs -f
 docker-compose down
 ```
 
-### 自动发布（`dev` 分支）
+### 自动发布（`dev/master` 双机）
 
-仓库已约定使用 GitHub Actions 自动发布，工作流文件：`.github/workflows/deploy-dev.yml`。
+仓库使用 GitHub Actions 双机自动发布，工作流文件：`.github/workflows/deploy-branches.yml`。
 
 触发方式：
-- 推送到 `dev` 分支
+- 推送到 `dev` 或 `master` 分支
 - 手动触发 `workflow_dispatch`
 
+分支路由：
+- `dev` -> 上海服务器（`HOST_SHANGHAI`）
+- `master` -> 香港服务器（`HOST_HK_NEURALNOTE`）
+
 必需 Secrets：
-- `DEPLOY_HOST`
-- `DEPLOY_USER`
-- `DEPLOY_SSH_KEY`
-- `DEPLOY_PORT`（可选，默认 `22`）
+- `ALIYUN_REGISTRY`
+- `ALIYUN_REGISTRY_USER`
+- `ALIYUN_REGISTRY_PASSWORD`
+- `HOST_SHANGHAI`
+- `HOST_HK_NEURALNOTE`
+- `SSH_PRIVATE_KEY`
+- `LETSENCRYPT_EMAIL`（可选，用于香港域名证书申请）
 
 发布流程：
-1. 打包源码为发布压缩包
-2. 上传到服务器
-3. 运行 `scripts/deploy_release.sh` 切换 `/opt/neuralnote/current` 到新版本
-4. 执行 `docker compose -f docker-compose.prod.yml up -d --build`
-5. 健康检查失败时自动回滚到上一版本
+1. 按分支选择目标服务器
+2. `master` 部署前在香港自动执行 `scripts/setup_hk_edge_proxy.sh`，安装 Nginx、申请证书并配置双域名入口
+3. 构建并推送前后端镜像到阿里云 ACR（默认命名空间 `capoo`）
+4. 打包源码并上传发布包、部署脚本到目标服务器
+5. 运行 `scripts/deploy_release.sh`（`registry` 模式）切换 `/opt/neuralnote/current`
+6. 用镜像 tag 启动容器并健康检查，失败自动回滚到上一版本（优先复用上一版本 `.deploy-images.env`）
+
+香港域名网关路由：
+- `https://neuralnote.capootech.com` -> 香港本机容器 `127.0.0.1:18080`（master）
+- `https://dev.neuralnote.capootech.com` -> 上海服务器 `http://47.101.214.41:80`（dev，全站反代）
+
+生产前端端口绑定变量（`docker-compose.prod.yml`）：
+- `FRONTEND_BIND_ADDR`（默认 `0.0.0.0`）
+- `FRONTEND_BIND_PORT`（默认 `80`）
+
+分支默认绑定：
+- `dev`: `0.0.0.0:80`
+- `master`: `127.0.0.1:18080`（仅香港 Nginx 可访问）
+
+服务器前置要求：
+- 两台机器都需准备 `/opt/neuralnote/shared/backend.env`
+- 首次部署执行：`mkdir -p /opt/neuralnote/shared /opt/neuralnote/releases`
+- 上海可从现有 release 迁移 `.env`，香港需手动创建独立配置
 
 ### 前端 API 基址
 
@@ -351,10 +376,10 @@ NeuralNote-Project/
 ### Git 工作流规范
 
 - **分支策略**：
-  - `master`：稳定版本分支
-  - `dev`：日常开发分支，推送后会触发自动部署流程
+  - `master`：稳定版本分支，推送后自动部署到香港服务器
+  - `dev`：日常开发分支，推送后自动部署到上海服务器
 - **合并规则**：使用 `git merge dev --no-ff` 保留合并历史
-- **推送规则**：`dev` 用于持续集成部署，`master` 用于稳定发布
+- **推送规则**：`dev` 与 `master` 都触发 CI/CD，部署目标由分支路由决定
 
 详细规范请查看：[Git 工作流程文档](docs/02_Tech/Git_Workflow.md)
 
