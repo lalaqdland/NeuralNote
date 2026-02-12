@@ -159,14 +159,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf "${ARCHIVE_NAME}" \
-            --exclude='./.git' \
-            --exclude='./venv' \
-            --exclude='./src/frontend/node_modules' \
-            --exclude='./src/frontend/dist' \
-            --exclude='./neuralnote_deploy.tar' \
-            --exclude='./neuralnote_release_*.tar.gz' \
-            .
+          git archive --format=tar.gz --output="${ARCHIVE_NAME}" "${GITHUB_SHA}"
+          test -s "${ARCHIVE_NAME}"
 
       - name: Prepare SSH
         shell: bash
