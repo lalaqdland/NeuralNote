@@ -160,28 +160,41 @@ docker-compose down
 
 触发方式：
 - 推送到 `dev` 或 `master` 分支
-- 手动触发 `workflow_dispatch`
+- 手动触发 `workflow_dispatch`（可选强制模式与目标分支）
 
 分支路由：
 - `dev` -> 上海服务器（`HOST_SHANGHAI`）
 - `master` -> 香港服务器（`HOST_HK_NEURALNOTE`）
 
 必需 Secrets：
-- `ALIYUN_REGISTRY`
-- `ALIYUN_REGISTRY_USER`
-- `ALIYUN_REGISTRY_PASSWORD`
 - `HOST_SHANGHAI`
 - `HOST_HK_NEURALNOTE`
 - `SSH_PRIVATE_KEY`
 - `LETSENCRYPT_EMAIL`（可选，用于香港域名证书申请）
 
+Registry 模式相关 Secrets（可选但推荐）：
+- `ALIYUN_REGISTRY`
+- `ALIYUN_REGISTRY_USER`
+- `ALIYUN_REGISTRY_PASSWORD`
+
+`workflow_dispatch` 输入参数：
+- `deploy_mode`：`auto | registry | build`（默认 `auto`）
+- `force_branch`：`dev | master`（手动部署目标）
+
+部署模式说明：
+- `auto`：优先 `registry`，失败自动回退 `build`
+- `registry`：强制镜像仓库模式（失败即失败）
+- `build`：强制服务器本地构建模式（不依赖 ACR）
+
 发布流程：
 1. 按分支选择目标服务器
-2. `master` 部署前在香港自动执行 `scripts/setup_hk_edge_proxy.sh`，安装 Nginx、申请证书并配置双域名入口
-3. 构建并推送前后端镜像到阿里云 ACR（默认命名空间 `capoo`）
-4. 打包源码并上传发布包、部署脚本到目标服务器
-5. 运行 `scripts/deploy_release.sh`（`registry` 模式）切换 `/opt/neuralnote/current`
-6. 用镜像 tag 启动容器并健康检查，失败自动回滚到上一版本（优先复用上一版本 `.deploy-images.env`）
+2. 解析部署模式与目标：生成 `RELEASE_ID`、健康检查 URL 与模式元数据
+3. 若目标分支为 `master`，先在香港自动执行 `scripts/setup_hk_edge_proxy.sh`
+4. 若允许且可用，尝试 `registry` 构建并推送镜像；失败时在 `auto` 模式自动回退 `build`
+5. 打包源码并上传发布包、部署脚本、运行时环境到目标服务器
+6. 运行 `scripts/deploy_release.sh` 切换 `/opt/neuralnote/current`，并执行健康检查
+7. 强校验远端 `current` 已切换到本次 `RELEASE_ID`
+8. 发布失败时输出分阶段诊断，成功/失败均写入 `GITHUB_STEP_SUMMARY`
 
 香港域名网关路由：
 - `https://neuralnote.capoo.tech` -> 香港本机容器 `127.0.0.1:18080`（master）

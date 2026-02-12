@@ -497,13 +497,27 @@ docker system prune -a --volumes
 
 ### 必需 Secrets
 
-- `ALIYUN_REGISTRY`：阿里云镜像仓库地址（可带命名空间；若不带默认补 `capoo`）
-- `ALIYUN_REGISTRY_USER`：镜像仓库用户名
-- `ALIYUN_REGISTRY_PASSWORD`：镜像仓库密码
 - `HOST_SHANGHAI`：上海服务器 IP/域名
 - `HOST_HK_NEURALNOTE`：香港服务器 IP/域名
 - `SSH_PRIVATE_KEY`：部署私钥（工作流固定使用 `root@host:22`）
 - `LETSENCRYPT_EMAIL`（可选）：香港域名证书申请邮箱
+
+### Registry 模式相关 Secrets（可选但推荐）
+
+- `ALIYUN_REGISTRY`：阿里云镜像仓库地址（可带命名空间；若不带默认补 `capoo`）
+- `ALIYUN_REGISTRY_USER`：镜像仓库用户名
+- `ALIYUN_REGISTRY_PASSWORD`：镜像仓库密码
+
+### workflow_dispatch 输入参数
+
+- `deploy_mode`：`auto | registry | build`（默认 `auto`）
+- `force_branch`：`dev | master`（手动部署目标）
+
+### 部署模式说明
+
+- `auto`：优先 `registry`，失败自动回退 `build`
+- `registry`：强制镜像仓库模式（失败即失败）
+- `build`：强制服务器本地构建模式（不依赖 ACR）
 
 ### 香港域名网关路由（固定）
 
@@ -521,26 +535,27 @@ docker system prune -a --volumes
 ### 发布流程
 
 1. GitHub Actions 根据分支选择目标服务器
-2. 若分支为 `master`，先在香港执行 `scripts/setup_hk_edge_proxy.sh`：
+2. 解析部署模式与目标：生成 `RELEASE_ID`、健康检查 URL 与模式元数据
+3. 若分支为 `master`，先在香港执行 `scripts/setup_hk_edge_proxy.sh`：
    - 安装 Nginx + Certbot
    - 申请/续签 `neuralnote.capoo.tech` 与 `dev.neuralnote.capoo.tech` 证书
    - 配置双域名反代与自动续期
-3. 构建并推送前后端镜像：
-   - `${REGISTRY_NS}/neuralnote-backend:<sha12>` 与 `<branch>-latest`
-   - `${REGISTRY_NS}/neuralnote-frontend:<sha12>` 与 `<branch>-latest`
-4. 打包仓库源码为 `neuralnote_release_<timestamp>.tar.gz`
-5. 通过 SCP 上传发布包、`scripts/deploy_release.sh`、`deploy_runtime.env` 到服务器 `/tmp`
-6. 执行部署脚本（`DEPLOY_MODE=registry`），自动完成：
+4. 若允许且可用，尝试 `registry` 构建并推送镜像；失败时在 `auto` 模式自动回退 `build`
+5. 打包仓库源码为 `neuralnote_release_<timestamp>.tar.gz`
+6. 通过 SCP 上传发布包、`scripts/deploy_release.sh`、`deploy_runtime.env` 到服务器 `/tmp`
+7. 执行部署脚本（`DEPLOY_MODE=auto/registry/build`），自动完成：
    - 解压到 `/opt/neuralnote/releases/<timestamp>`
    - 将 `src/backend/.env` 链接到 `/opt/neuralnote/shared/backend.env`
-   - 写入 `.deploy-images.env`（记录镜像 tag + 前端端口绑定变量）
+   - `registry` 模式写入 `.deploy-images.env`；`build` 模式不依赖镜像环境文件
    - 切换软链 `/opt/neuralnote/current`
-   - 运行 `docker compose --env-file .deploy-images.env -f docker-compose.prod.yml pull`
-   - 运行 `docker compose --env-file .deploy-images.env -f docker-compose.prod.yml up -d --no-build`
+   - `registry`：`pull + up --no-build`
+   - `build`：`up -d --build`
    - 健康检查：
      - `dev`：`http://<上海IP>/` 与 `http://<上海IP>/api/v1/health/ping`
      - `master`：`https://neuralnote.capoo.tech/` 与 `https://neuralnote.capoo.tech/api/v1/health/ping`
-7. 若健康检查失败，自动回滚到上一版本并优先使用上一版 `.deploy-images.env` 重启容器
+8. 强校验远端 `/opt/neuralnote/current` 已切换到本次 `RELEASE_ID`
+9. 若健康检查失败，自动回滚到上一版本并优先使用上一版 `.deploy-images.env` 重启容器
+10. 失败时输出诊断信息（模式决策、远端 current、compose ps），并写入 `GITHUB_STEP_SUMMARY`
 
 ### 服务器一次性初始化
 
