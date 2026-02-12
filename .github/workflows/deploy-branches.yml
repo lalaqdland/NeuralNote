@@ -50,8 +50,8 @@ jobs:
               DEPLOY_HOST="${HOST_HK_NEURALNOTE}"
               FRONTEND_BIND_ADDR="127.0.0.1"
               FRONTEND_BIND_PORT="18080"
-              MAIN_DOMAIN="neuralnote.capootech.com"
-              DEV_DOMAIN="dev.neuralnote.capootech.com"
+              MAIN_DOMAIN="neuralnote.capoo.tech"
+              DEV_DOMAIN="dev.neuralnote.capoo.tech"
               VERIFY_FRONTEND_URL="https://${MAIN_DOMAIN}/"
               VERIFY_BACKEND_URL="https://${MAIN_DOMAIN}/api/v1/health/ping"
               ;;
@@ -226,6 +226,6 @@ jobs:
           curl -fsS --retry 30 --retry-delay 5 "${VERIFY_FRONTEND_URL}" >/dev/null
           curl -fsS --retry 30 --retry-delay 5 "${VERIFY_BACKEND_URL}" | grep -q '"message":"pong"'
           if [[ "${BRANCH}" == "master" ]]; then
-            curl -fsS --retry 30 --retry-delay 5 "https://dev.neuralnote.capootech.com/api/v1/health/ping" | grep -q '"message":"pong"'
+            curl -fsS --retry 30 --retry-delay 5 "https://dev.neuralnote.capoo.tech/api/v1/health/ping" | grep -q '"message":"pong"'
           fi
           echo "Deploy verification passed for branch ${BRANCH}: ${VERIFY_FRONTEND_URL}"

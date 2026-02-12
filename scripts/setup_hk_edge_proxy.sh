@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-MAIN_DOMAIN="${MAIN_DOMAIN:-neuralnote.capootech.com}"
-DEV_DOMAIN="${DEV_DOMAIN:-dev.neuralnote.capootech.com}"
+MAIN_DOMAIN="${MAIN_DOMAIN:-neuralnote.capoo.tech}"
+DEV_DOMAIN="${DEV_DOMAIN:-dev.neuralnote.capoo.tech}"
 SHANGHAI_UPSTREAM="${SHANGHAI_UPSTREAM:-http://47.101.214.41:80}"
 DEV_UPSTREAM_HOST_HEADER="${DEV_UPSTREAM_HOST_HEADER:-47.101.214.41}"
 HK_LOCAL_UPSTREAM="${HK_LOCAL_UPSTREAM:-http://127.0.0.1:18080}"

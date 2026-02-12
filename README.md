@@ -184,8 +184,8 @@ docker-compose down
 6. 用镜像 tag 启动容器并健康检查，失败自动回滚到上一版本（优先复用上一版本 `.deploy-images.env`）
 
 香港域名网关路由：
-- `https://neuralnote.capootech.com` -> 香港本机容器 `127.0.0.1:18080`（master）
-- `https://dev.neuralnote.capootech.com` -> 上海服务器 `http://47.101.214.41:80`（dev，全站反代）
+- `https://neuralnote.capoo.tech` -> 香港本机容器 `127.0.0.1:18080`（master）
+- `https://dev.neuralnote.capoo.tech` -> 上海服务器 `http://47.101.214.41:80`（dev，全站反代）
 
 生产前端端口绑定变量（`docker-compose.prod.yml`）：
 - `FRONTEND_BIND_ADDR`（默认 `0.0.0.0`）
