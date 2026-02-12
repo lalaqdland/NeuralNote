@@ -183,7 +183,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           if ! ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1; then
             echo "[deploy] SSH_PRIVATE_KEY has invalid format. Supported formats: raw multiline key, escaped newline key, or base64-encoded private key." >&2
-            exit 1
+            exit 41
           fi
 
           ssh-keyscan -p "${DEPLOY_PORT}" -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
@@ -199,10 +199,13 @@ jobs:
               sleep $((attempt * 5))
               attempt=$((attempt + 1))
             done
-            return 1
+            return 42
           }
 
-          retry_ssh
+          if ! retry_ssh; then
+            echo "[deploy] Unable to authenticate to ${DEPLOY_USER}@${DEPLOY_HOST}. Check host allowlist/security group, DEPLOY_USER, and SSH key authorization." >&2
+            exit 42
+          fi
 
       - name: Setup HK edge proxy (master only)
         shell: bash
