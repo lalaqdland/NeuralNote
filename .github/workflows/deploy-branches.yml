@@ -38,6 +38,8 @@ jobs:
       HOST_SHANGHAI: ${{ secrets.HOST_SHANGHAI }}
       HOST_HK_NEURALNOTE: ${{ secrets.HOST_HK_NEURALNOTE }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_PRIVATE_KEY_SHANGHAI: ${{ secrets.SSH_PRIVATE_KEY_SHANGHAI }}
+      SSH_PRIVATE_KEY_HK_NEURALNOTE: ${{ secrets.SSH_PRIVATE_KEY_HK_NEURALNOTE }}
       ALIYUN_REGISTRY: ${{ secrets.ALIYUN_REGISTRY }}
       ALIYUN_REGISTRY_USER: ${{ secrets.ALIYUN_REGISTRY_USER }}
       ALIYUN_REGISTRY_PASSWORD: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
@@ -96,7 +98,6 @@ jobs:
           esac
 
           : "${DEPLOY_HOST:?DEPLOY_HOST is required for branch ${BRANCH}}"
-          : "${SSH_PRIVATE_KEY:?SSH_PRIVATE_KEY is required}"
 
           REGISTRY_CONFIGURED="false"
           REGISTRY_HOST=""
@@ -167,7 +168,20 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
-          KEY_CONTENT="$(printf '%s' "${SSH_PRIVATE_KEY}" | tr -d '\r')"
+
+          RAW_KEY="${SSH_PRIVATE_KEY:-}"
+          KEY_SOURCE="SSH_PRIVATE_KEY"
+          if [[ "${BRANCH}" == "dev" && -n "${SSH_PRIVATE_KEY_SHANGHAI:-}" ]]; then
+            RAW_KEY="${SSH_PRIVATE_KEY_SHANGHAI}"
+            KEY_SOURCE="SSH_PRIVATE_KEY_SHANGHAI"
+          elif [[ "${BRANCH}" == "master" && -n "${SSH_PRIVATE_KEY_HK_NEURALNOTE:-}" ]]; then
+            RAW_KEY="${SSH_PRIVATE_KEY_HK_NEURALNOTE}"
+            KEY_SOURCE="SSH_PRIVATE_KEY_HK_NEURALNOTE"
+          fi
+          : "${RAW_KEY:?No SSH private key is configured. Set SSH_PRIVATE_KEY (or branch-specific key secret).}"
+          echo "[deploy] Using SSH key source: ${KEY_SOURCE} (branch=${BRANCH})"
+
+          KEY_CONTENT="$(printf '%s' "${RAW_KEY}" | tr -d '\r')"
           if [[ "${KEY_CONTENT}" == *"\\n"* ]]; then
             KEY_CONTENT="$(printf '%b' "${KEY_CONTENT}")"
           fi
@@ -182,7 +196,7 @@ jobs:
           printf '%s\n' "${KEY_CONTENT}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           if ! ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1; then
-            echo "[deploy] SSH_PRIVATE_KEY has invalid format. Supported formats: raw multiline key, escaped newline key, or base64-encoded private key." >&2
+            echo "[deploy] ${KEY_SOURCE} has invalid format. Supported formats: raw multiline key, escaped newline key, or base64-encoded private key." >&2
             exit 41
           fi
 
