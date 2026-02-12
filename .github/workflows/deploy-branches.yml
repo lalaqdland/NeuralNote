@@ -169,14 +169,40 @@ jobs:
           mkdir -p ~/.ssh
           KEY_CONTENT="$(printf '%s' "${SSH_PRIVATE_KEY}" | tr -d '\r')"
           if [[ "${KEY_CONTENT}" == *"\\n"* ]]; then
-            printf '%b' "${KEY_CONTENT}" > ~/.ssh/id_ed25519
-          else
-            printf '%s\n' "${KEY_CONTENT}" > ~/.ssh/id_ed25519
+            KEY_CONTENT="$(printf '%b' "${KEY_CONTENT}")"
           fi
+
+          if [[ "${KEY_CONTENT}" != *"BEGIN "* ]]; then
+            DECODED_KEY="$(printf '%s' "${KEY_CONTENT}" | base64 -d 2>/dev/null || true)"
+            if [[ -n "${DECODED_KEY}" && "${DECODED_KEY}" == *"BEGIN "* ]]; then
+              KEY_CONTENT="${DECODED_KEY}"
+            fi
+          fi
+
+          printf '%s\n' "${KEY_CONTENT}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null
+          if ! ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null 2>&1; then
+            echo "[deploy] SSH_PRIVATE_KEY has invalid format. Supported formats: raw multiline key, escaped newline key, or base64-encoded private key." >&2
+            exit 1
+          fi
+
           ssh-keyscan -p "${DEPLOY_PORT}" -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
-          ssh -o BatchMode=yes -o ConnectTimeout=20 -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" "echo [deploy] ssh auth ok on \$(hostname)"
+
+          retry_ssh() {
+            local attempt=1
+            local max_attempts=3
+            while [[ "${attempt}" -le "${max_attempts}" ]]; do
+              if ssh -o BatchMode=yes -o ConnectTimeout=20 -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" "echo [deploy] ssh auth ok on \$(hostname)"; then
+                return 0
+              fi
+              echo "[deploy] ssh auth check failed (attempt ${attempt}/${max_attempts})"
+              sleep $((attempt * 5))
+              attempt=$((attempt + 1))
+            done
+            return 1
+          }
+
+          retry_ssh
 
       - name: Setup HK edge proxy (master only)
         shell: bash
