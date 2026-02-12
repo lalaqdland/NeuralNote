@@ -167,9 +167,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
-          printf '%s\n' "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+          KEY_CONTENT="$(printf '%s' "${SSH_PRIVATE_KEY}" | tr -d '\r')"
+          if [[ "${KEY_CONTENT}" == *"\\n"* ]]; then
+            printf '%b' "${KEY_CONTENT}" > ~/.ssh/id_ed25519
+          else
+            printf '%s\n' "${KEY_CONTENT}" > ~/.ssh/id_ed25519
+          fi
           chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null
           ssh-keyscan -p "${DEPLOY_PORT}" -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
+          ssh -o BatchMode=yes -o ConnectTimeout=20 -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" "echo [deploy] ssh auth ok on \$(hostname)"
 
       - name: Setup HK edge proxy (master only)
         shell: bash
@@ -369,9 +376,37 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          scp -P "${DEPLOY_PORT}" "${ARCHIVE_NAME}" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/${ARCHIVE_NAME}"
-          scp -P "${DEPLOY_PORT}" "scripts/deploy_release.sh" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/deploy_release.sh"
-          scp -P "${DEPLOY_PORT}" "deploy_runtime.env" "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/deploy_runtime.env"
+          test -s "${ARCHIVE_NAME}"
+          test -s "scripts/deploy_release.sh"
+          test -s "deploy_runtime.env"
+
+          retry_scp() {
+            local src="$1"
+            local dst="$2"
+            local attempt=1
+            local max_attempts=3
+
+            while [[ "${attempt}" -le "${max_attempts}" ]]; do
+              if scp \
+                -o ConnectTimeout=20 \
+                -o ServerAliveInterval=15 \
+                -o ServerAliveCountMax=3 \
+                -P "${DEPLOY_PORT}" \
+                "${src}" "${DEPLOY_USER}@${DEPLOY_HOST}:${dst}"; then
+                return 0
+              fi
+
+              echo "[deploy] scp failed (attempt ${attempt}/${max_attempts}): ${src} -> ${dst}"
+              sleep $((attempt * 5))
+              attempt=$((attempt + 1))
+            done
+
+            return 1
+          }
+
+          retry_scp "${ARCHIVE_NAME}" "/tmp/${ARCHIVE_NAME}"
+          retry_scp "scripts/deploy_release.sh" "/tmp/deploy_release.sh"
+          retry_scp "deploy_runtime.env" "/tmp/deploy_runtime.env"
 
       - name: Deploy on target server
         shell: bash
