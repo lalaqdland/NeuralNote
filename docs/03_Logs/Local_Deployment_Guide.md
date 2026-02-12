@@ -507,8 +507,8 @@ docker system prune -a --volumes
 
 ### 香港域名网关路由（固定）
 
-- `https://neuralnote.capootech.com` -> 香港本机 `http://127.0.0.1:18080`
-- `https://dev.neuralnote.capootech.com` -> 上海公网 `http://47.101.214.41:80`（全站反代）
+- `https://neuralnote.capoo.tech` -> 香港本机 `http://127.0.0.1:18080`
+- `https://dev.neuralnote.capoo.tech` -> 上海公网 `http://47.101.214.41:80`（全站反代）
 
 ### 前端端口绑定变量（生产）
 
@@ -523,7 +523,7 @@ docker system prune -a --volumes
 1. GitHub Actions 根据分支选择目标服务器
 2. 若分支为 `master`，先在香港执行 `scripts/setup_hk_edge_proxy.sh`：
    - 安装 Nginx + Certbot
-   - 申请/续签 `neuralnote.capootech.com` 与 `dev.neuralnote.capootech.com` 证书
+   - 申请/续签 `neuralnote.capoo.tech` 与 `dev.neuralnote.capoo.tech` 证书
    - 配置双域名反代与自动续期
 3. 构建并推送前后端镜像：
    - `${REGISTRY_NS}/neuralnote-backend:<sha12>` 与 `<branch>-latest`
@@ -539,7 +539,7 @@ docker system prune -a --volumes
    - 运行 `docker compose --env-file .deploy-images.env -f docker-compose.prod.yml up -d --no-build`
    - 健康检查：
      - `dev`：`http://<上海IP>/` 与 `http://<上海IP>/api/v1/health/ping`
-     - `master`：`https://neuralnote.capootech.com/` 与 `https://neuralnote.capootech.com/api/v1/health/ping`
+     - `master`：`https://neuralnote.capoo.tech/` 与 `https://neuralnote.capoo.tech/api/v1/health/ping`
 7. 若健康检查失败，自动回滚到上一版本并优先使用上一版 `.deploy-images.env` 重启容器
 
 ### 服务器一次性初始化
@@ -582,9 +582,9 @@ docker compose --env-file .deploy-images.env -f docker-compose.prod.yml ps
 香港域名入口验证（master 环境）：
 
 ```bash
-curl -I https://neuralnote.capootech.com
-curl -fsS https://neuralnote.capootech.com/api/v1/health/ping
-curl -I https://dev.neuralnote.capootech.com
+curl -I https://neuralnote.capoo.tech
+curl -fsS https://neuralnote.capoo.tech/api/v1/health/ping
+curl -I https://dev.neuralnote.capoo.tech
 ```
 
 ### 常见失败点与处理
